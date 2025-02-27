@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
   Home,
   Users,
@@ -33,35 +34,6 @@ const SidebarComponent: React.FC<SidebarProps> = ({
     }
   };
 
-  const renderSubMenu = (menuItem: string) => {
-    if (menuItem !== "Payroll") return null;
-
-    const subMenuItems = ["Current Period", "History"];
-
-    return (
-      <div
-        className={`pl-10 mt-1 space-y-2 text-sm transition-all duration-300 ${
-          expandedSubmenu === "Payroll"
-            ? "opacity-100 max-h-40"
-            : "opacity-0 max-h-0 overflow-hidden"
-        }`}
-      >
-        {subMenuItems.map((item) => (
-          <div
-            key={item}
-            className={`flex items-center py-1 cursor-pointer transition-all duration-300 ${
-              expandedSubmenu === item ? "text-blue-400" : "text-gray-400"
-            }`}
-            onClick={() => setExpandedSubmenu(item)}
-          >
-            <ChevronRight size={14} className="mr-2" />
-            <span>{item}</span>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="flex relative">
       {!sidebarOpen && (
@@ -80,11 +52,7 @@ const SidebarComponent: React.FC<SidebarProps> = ({
         }`}
         style={{ background: "linear-gradient(to bottom, #fff, #f8fafc)" }}
       >
-        <div
-          className={`p-6 flex justify-between items-center transition-opacity duration-300 ${
-            sidebarOpen ? "opacity-100" : "opacity-0"
-          }`}
-        >
+        <div className="p-6 flex justify-between items-center">
           <div className="flex flex-col">
             <div className="text-xl font-bold flex items-center">
               <span className="text-blue-800 mr-1 tracking-widest">G.</span>
@@ -107,20 +75,33 @@ const SidebarComponent: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        <div
-          className={`flex-1 overflow-y-auto transition-opacity duration-300 ${
-            sidebarOpen ? "opacity-100" : "opacity-0"
-          }`}
-        >
+        <div className="flex-1 overflow-y-auto">
           <div className="px-4 py-2">
             {[
-              { name: "Dashboard", icon: <Home size={18} /> },
-              { name: "Payroll", icon: <PhilippinePeso size={18} /> },
-              { name: "Employees", icon: <Users size={18} /> },
-              { name: "Settings", icon: <Settings size={18} /> },
+              {
+                name: "Dashboard",
+                icon: <Home size={18} />,
+                path: "/Dashboard",
+              },
+              {
+                name: "Payroll",
+                icon: <PhilippinePeso size={18} />,
+                path: "/Payroll",
+              },
+              {
+                name: "Employees",
+                icon: <Users size={18} />,
+                path: "/Employees",
+              },
+              {
+                name: "Settings",
+                icon: <Settings size={18} />,
+                path: "/Settings",
+              },
             ].map((item) => (
               <div key={item.name} className="mb-1">
-                <div
+                <Link
+                  to={item.path} // ✅ Navigation using Link
                   className={`flex items-center py-2 px-3 rounded-md cursor-pointer 
                   hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 ${
                     activeSidebarItem === item.name
@@ -131,18 +112,13 @@ const SidebarComponent: React.FC<SidebarProps> = ({
                 >
                   <div className="mr-3">{item.icon}</div>
                   <span>{item.name}</span>
-                </div>
-                {renderSubMenu(item.name)}
+                </Link>
               </div>
             ))}
           </div>
         </div>
 
-        <div
-          className={`p-4 border-t border-blue-100 transition-opacity duration-300 ${
-            sidebarOpen ? "opacity-100" : "opacity-0"
-          }`}
-        >
+        <div className="p-4 border-t border-blue-100">
           <div className="flex items-center text-gray-600 hover:text-blue-800 cursor-pointer transition-colors duration-200">
             <LogOut size={18} className="mr-3" />
             <span>Log out</span>
