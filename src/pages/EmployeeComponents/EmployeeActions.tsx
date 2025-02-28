@@ -1,6 +1,7 @@
 import { FileText, Users, Search, Filter, Plus } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { useNavigate } from "react-router-dom";
 
 interface Employee {
   id: string;
@@ -58,7 +59,11 @@ const EmployeeActions = ({
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(10);
     doc.text("GLS Manpower Services", 14, 35);
-    doc.text("Suite 19 G/F Midland Plaza, M. Adriatico Street, Ermita, City of Manila 1000 Metro Manila", 14, 40);
+    doc.text(
+      "Suite 19 G/F Midland Plaza, M. Adriatico Street, Ermita, City of Manila 1000 Metro Manila",
+      14,
+      40
+    );
     doc.text("gls_manpowerservices@yahoo.com | +63 (2) 8 526 5813", 14, 45);
 
     // Add summary box
@@ -183,17 +188,22 @@ const EmployeeActions = ({
     doc.save("employee-complete-report.pdf");
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="p-4">
       <div className="hidden md:flex justify-between items-center">
         <div className="flex space-x-2">
-          <button className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md">
+          <button
+            className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md cursor-pointer"
+            onClick={() => navigate("/Employees/AddEmployee")}
+          >
             <Users size={16} className="mr-2" />
             Add Employee
           </button>
           <button
             onClick={generatePDF}
-            className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200"
+            className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 cursor-pointer"
           >
             <FileText size={16} className="mr-2" />
             Generate PDF

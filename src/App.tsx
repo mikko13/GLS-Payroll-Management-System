@@ -6,6 +6,7 @@ import EmployeeDashboard from "./pages/EmployeeComponents/EmployeeDashboard";
 import NotFoundPage from "./pages/NotFoundPageComponents/NotFoundPage";
 import SettingsPage from "./pages/SettingsComponents/SettingsPage";
 import CreatePayrollForm from "./pages/PayrollComponents/CreatePayrollComponents/CreatePayrollForm";
+import CreateEmployeeForm from "./pages/EmployeeComponents/CreateEmployeeComponents/CreateEmployeeForm";
 
 function App() {
   return (
@@ -16,8 +17,9 @@ function App() {
         <Route path="/Payroll" element={<PayrollDashboard />} />
         <Route path="/Employees" element={<EmployeeDashboard />} />
         <Route path="/Settings" element={<SettingsPage />} />
-        
+
         <Route path="/Payroll/CreatePayroll" element={<CreatePayrollForm />} />
+        <Route path="/Employees/AddEmployee" element={<CreateEmployeeForm />} />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
