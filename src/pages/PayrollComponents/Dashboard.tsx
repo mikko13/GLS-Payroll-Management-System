@@ -1,11 +1,11 @@
 /* eslint-disable no-empty-pattern */
 import { useState } from "react";
-import Sidebar from "../SidebarComponents/SidebarComponents";
-import Header from "./HeaderComponent";
-import PayPeriod from "./PayPeriodComponent";
-import Metrics from "./MetricsComponent";
+import Sidebar from "../SidebarComponents/Sidebar";
+import Header from "./Header";
+import PayPeriod from "./PayPeriod";
+import Metrics from "./Metrics";
 import ActionsComponent from "./ActionsComponent";
-import EmployeeTable from "./EmployeeTableComponents";
+import EmployeeTable from "./Table";
 import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 const PayrollDashboardComponent = () => {

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import Sidebar from "../SidebarComponents/SidebarComponents";
+import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "./Header";
-import EmployeeStats from "./EmployeeStats";
-import EmployeeActions from "./EmployeeActions";
-import EmployeeTable from "./EmployeeTable";
+import EmployeeStats from "./Stats";
+import EmployeeActions from "./Actions";
+import EmployeeTable from "./Table";
 
 const EmployeeDashboard = () => {
   const [employees] = useState([

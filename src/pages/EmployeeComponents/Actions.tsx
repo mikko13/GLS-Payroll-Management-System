@@ -1,4 +1,5 @@
-import { FileText, Users, Search, Filter, Plus } from "lucide-react";
+import { useState } from "react";
+import { FileText, Users, Search, Filter, Plus, X } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +38,9 @@ const EmployeeActions = ({
   setSearchQuery,
   displayedEmployees,
 }: EmployeeActionsProps) => {
+  const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const navigate = useNavigate();
+
   const generatePDF = () => {
     // Initialize PDF document in landscape mode
     const doc = new jsPDF("landscape");
@@ -188,10 +192,9 @@ const EmployeeActions = ({
     doc.save("employee-complete-report.pdf");
   };
 
-  const navigate = useNavigate();
-
   return (
     <div className="p-4">
+      {/* Desktop Layout */}
       <div className="hidden md:flex justify-between items-center">
         <div className="flex space-x-2">
           <button
@@ -229,6 +232,7 @@ const EmployeeActions = ({
         </div>
       </div>
 
+      {/* Mobile Layout */}
       <div className="md:hidden">
         <div className="flex justify-between items-center">
           <div className="relative flex-1 mr-2">
@@ -250,16 +254,32 @@ const EmployeeActions = ({
               <Filter size={16} className="text-gray-400" />
             </button>
             <button
-              onClick={generatePDF}
-              className="p-2 rounded-md bg-white hover:bg-blue-50 text-gray-800 transition-colors duration-200 border border-blue-200"
+              onClick={() => setMobileActionsOpen(!mobileActionsOpen)}
+              className="p-2 rounded-md bg-gradient-to-r from-blue-700 to-blue-800 text-white transition-colors duration-200"
             >
-              <FileText size={16} className="text-gray-600" />
-            </button>
-            <button className="p-2 rounded-md bg-gradient-to-r from-blue-700 to-blue-800 text-white transition-colors duration-200">
-              <Plus size={16} />
+              {mobileActionsOpen ? <X size={16} /> : <Plus size={16} />}
             </button>
           </div>
         </div>
+
+        {mobileActionsOpen && (
+          <div className="mt-2 space-y-2 animate-fade-in">
+            <button
+              className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md w-full"
+              onClick={() => navigate("/Employees/AddEmployee")}
+            >
+              <Users size={16} className="mr-2" />
+              Add Employee
+            </button>
+            <button
+              onClick={generatePDF}
+              className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 w-full"
+            >
+              <FileText size={16} className="mr-2" />
+              Generate PDF
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

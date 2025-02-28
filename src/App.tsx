@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import PayrollDashboard from "./pages/PayrollComponents/PayrollDashboardComponent";
+import PayrollDashboard from "./pages/PayrollComponents/Dashboard";
 import LoginPage from "./pages/LoginComponents/LoginComponent";
 import HomeDashboard from "./pages/DashboardComponents/Dashboard";
-import EmployeeDashboard from "./pages/EmployeeComponents/EmployeeDashboard";
+import EmployeeDashboard from "./pages/EmployeeComponents/Dashboard";
 import NotFoundPage from "./pages/NotFoundPageComponents/NotFoundPage";
 import SettingsPage from "./pages/SettingsComponents/SettingsPage";
 import CreatePayrollForm from "./pages/PayrollComponents/CreatePayrollComponents/CreatePayrollForm";

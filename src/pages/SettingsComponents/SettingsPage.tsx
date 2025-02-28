@@ -1,6 +1,6 @@
 // pages/SettingsPage.tsx
 import { useState } from "react";
-import Sidebar from "../SidebarComponents/SidebarComponents";
+import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "./Header";
 import MainContent from "./MainContent";
 

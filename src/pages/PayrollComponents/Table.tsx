@@ -1,6 +1,6 @@
 import React, { JSX, useMemo } from "react";
 import { Edit, Eye, Trash } from "lucide-react";
-import PaginationComponent from "./PaginationComponent";
+import PaginationComponent from "./Pagination";
 
 interface Employee {
   id: string;

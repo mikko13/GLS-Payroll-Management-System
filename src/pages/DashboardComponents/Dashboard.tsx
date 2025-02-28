@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Bell,
 } from "lucide-react";
-import Sidebar from "../SidebarComponents/SidebarComponents";
+import Sidebar from "../SidebarComponents/Sidebar";
 
 const Dashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
