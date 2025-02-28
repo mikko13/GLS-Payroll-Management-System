@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Sidebar from "../SidebarComponents/Sidebar";
-import Header from "./Header";
+import Header from "../HeaderComponents/Header";
 import EmployeeStats from "./Stats";
 import EmployeeActions from "./Actions";
 import EmployeeTable from "./Table";

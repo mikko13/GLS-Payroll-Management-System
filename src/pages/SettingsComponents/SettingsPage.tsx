@@ -1,7 +1,7 @@
 // pages/SettingsPage.tsx
 import { useState } from "react";
 import Sidebar from "../SidebarComponents/Sidebar";
-import Header from "./Header";
+import Header from "../HeaderComponents/Header";
 import MainContent from "./MainContent";
 
 const SettingsPage = () => {

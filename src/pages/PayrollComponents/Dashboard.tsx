@@ -1,7 +1,7 @@
 /* eslint-disable no-empty-pattern */
 import { useState } from "react";
 import Sidebar from "../SidebarComponents/Sidebar";
-import Header from "./Header";
+import Header from "../HeaderComponents/Header";
 import PayPeriod from "./PayPeriod";
 import Metrics from "./Metrics";
 import ActionsComponent from "./ActionsComponent";

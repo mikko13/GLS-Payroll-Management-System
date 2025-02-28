@@ -548,7 +548,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm flex items-center"
+              className="px-6 py-2 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm flex items-center"
             >
               <Save size={16} className="mr-2" /> Save Employee
             </button>
