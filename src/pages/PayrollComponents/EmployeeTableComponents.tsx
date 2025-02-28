@@ -1,5 +1,5 @@
 import React, { JSX, useMemo } from "react";
-import { Eye, Trash } from "lucide-react";
+import { Edit, Eye, Trash } from "lucide-react";
 import PaginationComponent from "./PaginationComponent";
 
 interface Employee {
@@ -171,6 +171,9 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
                     <div className="flex items-center space-x-2">
                       <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200">
                         <Eye size={16} />
+                      </button>
+                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200">
+                        <Edit size={16} />
                       </button>
                       <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200">
                         <Trash size={16} />

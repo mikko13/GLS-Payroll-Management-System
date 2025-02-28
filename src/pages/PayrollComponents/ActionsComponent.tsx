@@ -1,28 +1,25 @@
 import { useState } from "react";
-import {
-  Table,
-  Download,
-  Receipt,
-  Search,
-  Filter,
-  Plus,
-  X,
-} from "lucide-react";
+import { Table, Receipt, Search, Filter, Plus, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ActionsComponent = () => {
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="p-4">
       <div className="hidden md:flex justify-between items-center">
         <div className="flex space-x-2">
-          <button className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md">
-            <Table size={16} className="mr-2" />
-            Download Excel
+          <button
+            className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md cursor-pointer"
+            onClick={() => navigate("/Payroll/CreatePayroll")}
+          >
+            <Plus size={16} className="mr-2" />
+            Create Payroll Record
           </button>
           <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200">
-            <Download size={16} className="mr-2" />
-            Download PDF
+            <Table size={16} className="mr-2" />
+            Generate Payroll
           </button>
           <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200">
             <Receipt size={16} className="mr-2" />
@@ -77,12 +74,12 @@ const ActionsComponent = () => {
         {mobileActionsOpen && (
           <div className="mt-2 space-y-2 animate-fade-in">
             <button className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md w-full">
-              <Table size={16} className="mr-2" />
-              Download Excel
+              <Plus size={16} className="mr-2" />
+              Create Payroll Record
             </button>
             <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 w-full">
-              <Download size={16} className="mr-2" />
-              Download PDF
+              <Table size={16} className="mr-2" />
+              Generate Payroll
             </button>
             <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 w-full">
               <Receipt size={16} className="mr-2" />

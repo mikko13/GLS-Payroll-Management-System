@@ -1,9 +1,10 @@
+/* eslint-disable no-empty-pattern */
 import { useState } from "react";
-import Sidebar from "./SidebarComponents";
+import Sidebar from "../SidebarComponents/SidebarComponents";
 import Header from "./HeaderComponent";
 import PayPeriod from "./PayPeriodComponent";
 import Metrics from "./MetricsComponent";
-import Actions from "./ActionsComponent";
+import ActionsComponent from "./ActionsComponent";
 import EmployeeTable from "./EmployeeTableComponents";
 import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 
@@ -51,14 +52,12 @@ const PayrollDashboardComponent = () => {
     },
   ]);
 
-  const [activeSidebarItem, setActiveSidebarItem] = useState("Payroll");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedSubmenu, setExpandedSubmenu] = useState<string | null>(
-    "Current Period"
-  );  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [] = useState<string | null>("Current Period");
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [payPeriod, setPayPeriod] = useState("February 1-15, 2025");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
+  const [activeSidebarItem, setActiveSidebarItem] = useState("Payroll");
   const handleCheckboxChange = (id: string) => {
     setEmployees(
       employees.map((employee) =>
@@ -109,11 +108,9 @@ const PayrollDashboardComponent = () => {
     <div className="flex h-screen w-screen overflow-hidden">
       <Sidebar
         sidebarOpen={sidebarOpen}
-        toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
         activeSidebarItem={activeSidebarItem}
         setActiveSidebarItem={setActiveSidebarItem}
-        expandedSubmenu={expandedSubmenu}
-        setExpandedSubmenu={setExpandedSubmenu}
+        setSidebarOpen={setSidebarOpen}
       />
 
       <div
@@ -129,7 +126,7 @@ const PayrollDashboardComponent = () => {
             totalRegularWage={totalRegularWage}
             totalOvertime={totalOvertime}
           />
-          <Actions />
+          <ActionsComponent employees={employees} />
           <EmployeeTable
             employees={employees}
             handleCheckboxChange={handleCheckboxChange}
