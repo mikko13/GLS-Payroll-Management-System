@@ -4,7 +4,7 @@ import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "../HeaderComponents/Header";
 import PayPeriod from "./PayPeriod";
 import Metrics from "./Metrics";
-import ActionsComponent from "./ActionsComponent";
+import ActionsComponent from "./Actions";
 import EmployeeTable from "./Table";
 import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 

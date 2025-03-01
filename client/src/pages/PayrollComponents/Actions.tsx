@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Table, Receipt, Search, Filter, Plus, X } from "lucide-react";
+import { Table, Search, Filter, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import PayslipGenerator from "./PayslipGeneratorComponents/PayslipGenerator";
 
-const ActionsComponent = () => {
+const Actions = ({ employees = [] }) => {
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -21,10 +22,9 @@ const ActionsComponent = () => {
             <Table size={16} className="mr-2" />
             Generate Payroll
           </button>
-          <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200">
-            <Receipt size={16} className="mr-2" />
-            Generate Payslip
-          </button>
+
+          {/* Use the PayslipGenerator component with all employees */}
+          <PayslipGenerator employees={employees} />
         </div>
         <div className="flex items-center space-x-2">
           <div className="relative">
@@ -81,10 +81,7 @@ const ActionsComponent = () => {
               <Table size={16} className="mr-2" />
               Generate Payroll
             </button>
-            <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 w-full">
-              <Receipt size={16} className="mr-2" />
-              Generate Payslip
-            </button>
+            <PayslipGenerator employees={employees} />
           </div>
         )}
       </div>
@@ -92,4 +89,4 @@ const ActionsComponent = () => {
   );
 };
 
-export default ActionsComponent;
+export default Actions;

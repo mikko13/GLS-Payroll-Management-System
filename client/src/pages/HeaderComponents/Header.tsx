@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Bell, ChevronDown, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
@@ -45,7 +45,7 @@ const Header = () => {
     }
   };
 
-  const dismissNotification = (id, e) => {
+  const dismissNotification = (id: number, e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.stopPropagation();
     setNotifications(notifications.filter((n) => n.id !== id));
   };
@@ -63,7 +63,7 @@ const Header = () => {
             )}
             <Bell
               size={20}
-              className="text-gray-500 cursor-pointer hover:text-blue-800 transition-colors duration-200"
+              className="ml-4 text-gray-500 cursor-pointer hover:text-blue-800 transition-colors duration-200"
               onClick={toggleNotifications}
             />
 
