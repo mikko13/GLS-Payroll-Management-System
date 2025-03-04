@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState } from "react";
 import {
   Save,
@@ -6,12 +7,13 @@ import {
   Briefcase,
   CreditCard,
   Phone,
-  FileText,
+  Loader,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 interface CreateEmployeeFormProps {
-  onSubmit: (employeeData: Omit<Employee, "id">) => void;
+  onSubmit?: (employeeData: Omit<Employee, "id">) => void;
   onCancel: () => void;
   onBack?: () => void;
 }
@@ -39,19 +41,24 @@ interface Employee {
   remarks: string;
 }
 
-const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => {
+const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
+  onSubmit,
+  onCancel,
+}) => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     lastName: "",
     firstName: "",
     middleName: "",
-    gender: "male",
+    gender: "Male",
     position: "",
     department: "",
     dateStarted: "",
-    rate: "",
-    civilStatus: "single",
+    rate: "80.625",
+    civilStatus: "ingle",
     birthDate: "",
     sss: "",
     hdmf: "",
@@ -60,30 +67,55 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
     emailAddress: "",
     permanentAddress: "",
     contactNumber: "",
-    status: "active",
-    remarks: "",
+    status: "Regular",
+    remarks: "Active",
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/employees",
+        formData
+      );
+
+      if (onSubmit) {
+        onSubmit(formData);
+      }
+
+      navigate("/employees", {
+        state: { message: "Employee created successfully!", type: "success" },
+      });
+    } catch (err) {
+      console.error("Error creating employee:", err);
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || "Failed to create employee");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+      setIsSubmitting(false);
+    }
   };
 
-  // Calculate status badge color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
+  const getRemarksColor = (remarks: string) => {
+    switch (remarks) {
+      case "Active":
         return "bg-emerald-100 text-emerald-800";
-      case "on leave":
+      case "On leave":
         return "bg-amber-100 text-amber-800";
-      case "inactive":
+      case "Inactive":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -93,7 +125,6 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="h-full w-full p-4 md:p-6">
-        {/* Header with back button */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <button
@@ -109,17 +140,22 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
           </div>
           <div className="flex items-center">
             <span
-              className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                formData.status
+              className={`px-3 py-1 rounded-full text-xs font-medium ${getRemarksColor(
+                formData.remarks
               )}`}
             >
-              {formData.status}
+              {formData.remarks}
             </span>
           </div>
         </div>
 
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-          {/* Card for Personal Information */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <User className="text-blue-600 mr-2" size={18} />
@@ -200,8 +236,8 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
                   onChange={handleChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                 >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
                   <option value="other">Other</option>
                 </select>
               </div>
@@ -239,17 +275,17 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
                   onChange={handleChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                 >
-                  <option value="single">Single</option>
-                  <option value="married">Married</option>
-                  <option value="widowed">Widowed</option>
-                  <option value="divorced">Divorced</option>
-                  <option value="separated">Separated</option>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Widowed">Widowed</option>
+                  <option value="Divorced">Divorced</option>
+                  <option value="Separated">Separated</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Card for Employment Information */}
+          {/* Employment Information Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <Briefcase className="text-blue-600 mr-2" size={18} />
@@ -349,15 +385,35 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
                   onChange={handleChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                 >
-                  <option value="active">Active</option>
-                  <option value="on leave">On Leave</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="Regular">Regular</option>
+                  <option value="Irregular">Irregular</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="remarks"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Remarks*
+                </label>
+                <select
+                  id="remarks"
+                  name="remarks"
+                  required
+                  value={formData.remarks}
+                  onChange={handleChange}
+                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                >
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="On leave">On Leave</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Card for Government IDs */}
+          {/* Government IDs Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <CreditCard className="text-blue-600 mr-2" size={18} />
@@ -441,7 +497,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
             </div>
           </div>
 
-          {/* Card for Contact Information */}
+          {/* Contact Information Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <Phone className="text-blue-600 mr-2" size={18} />
@@ -510,47 +566,25 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({ onSubmit }) => 
             </div>
           </div>
 
-          {/* Card for Remarks */}
-          <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
-            <div className="flex items-center mb-4">
-              <FileText className="text-blue-600 mr-2" size={18} />
-              <h3 className="text-md font-semibold text-blue-800">
-                Additional Information
-              </h3>
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="remarks"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Remarks
-              </label>
-              <textarea
-                id="remarks"
-                name="remarks"
-                rows={4}
-                value={formData.remarks}
-                onChange={handleChange}
-                className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                placeholder="Enter any additional notes or remarks"
-              ></textarea>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
           <div className="flex justify-end space-x-3 mt-4 md:mt-6">
-            <button
+          <button
               type="button"
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+              onClick={() => navigate("/employees")}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm flex items-center"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm flex items-center cursor-pointer"
             >
-              <Save size={16} className="mr-2" /> Save Employee
+              {isSubmitting ? (
+                <Loader size={16} className="mr-2 animate-spin" />
+              ) : (
+                <Save size={16} className="mr-2" />
+              )}
+              {isSubmitting ? "Saving..." : "Save Employee"}
             </button>
           </div>
         </form>

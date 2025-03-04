@@ -3,13 +3,13 @@ import { Users, Zap, ZapOff } from "lucide-react";
 interface EmployeeStatsProps {
   totalEmployees: number;
   activeEmployees: number;
-  inactiveEmployees: number;
+  regularEmployees: number;
 }
 
 const EmployeeStats = ({
   totalEmployees,
   activeEmployees,
-  inactiveEmployees,
+  regularEmployees,
 }: EmployeeStatsProps) => {
   return (
     <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -37,7 +37,7 @@ const EmployeeStats = ({
           <ZapOff size={18} className="text-blue-800" />
         </div>
         <div className="text-gray-800 text-xl md:text-2xl font-bold">
-          {inactiveEmployees}
+          {regularEmployees}
         </div>
       </div>
     </div>

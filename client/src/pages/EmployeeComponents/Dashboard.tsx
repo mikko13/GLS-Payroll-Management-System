@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "../HeaderComponents/Header";
 import EmployeeStats from "./Stats";
@@ -6,40 +7,45 @@ import EmployeeActions from "./Actions";
 import EmployeeTable from "./Table";
 
 const EmployeeDashboard = () => {
-  const [employees] = useState([
-    {
-      id: "1",
-      lastName: "lastname",
-      firstName: "firstname",
-      middleName: "middlename",
-      gender: "gender",
-      position: "position",
-      department: "department",
-      dateStarted: "MM-DD-YYYY",
-      rate: "rate",
-      civilStatus: "civil status",
-      birthDate: "MM-DD-YYYY",
-      sss: "#####",
-      hdmf: "#####",
-      philhealth: "#####",
-      tin: "#####",
-      emailAddress: "email",
-      permanentAddress: "address",
-      contactNumber: "###",
-      status: "status",
-      remarks: "remarks",
-    },
-  ]);
-
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeSidebarItem, setActiveSidebarItem] = useState("Employees");
 
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("http://localhost:5000/api/employees");
+        // Add an 'id' field to each employee (using MongoDB's _id)
+        const employeesWithId = response.data.map(employee => ({
+          ...employee,
+          id: employee._id
+        }));
+        setEmployees(employeesWithId);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching employees:", err);
+        setError("Failed to load employees. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+  
   const filteredEmployees = employees.filter(
     (employee) =>
       employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.middleName.toLowerCase().includes(searchQuery.toLowerCase())
+      employee.middleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      employee.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const displayedEmployees = filteredEmployees.slice(
@@ -49,15 +55,11 @@ const EmployeeDashboard = () => {
 
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter(
-    (emp) => emp.status === "active"
+    (emp) => emp.remarks === "Active"
   ).length;
-
-  const inactiveEmployees = employees.filter(
-    (emp) => emp.status === "inactive"
+  const regularEmployees = employees.filter(
+    (emp) => emp.status === "Regular"
   ).length;
-
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeSidebarItem, setActiveSidebarItem] = useState("Employees");
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
@@ -73,24 +75,41 @@ const EmployeeDashboard = () => {
       >
         <Header />
         <div className="flex-1 overflow-y-auto">
+          {error && (
+            <div className="p-4 m-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+              {error}
+            </div>
+          )}
+          
           <EmployeeStats
             totalEmployees={totalEmployees}
             activeEmployees={activeEmployees}
-            inactiveEmployees={inactiveEmployees}
+            regularEmployees={regularEmployees}
           />
+          
           <EmployeeActions
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             displayedEmployees={displayedEmployees}
+            loading={loading}
           />
-          <EmployeeTable
-            displayedEmployees={displayedEmployees}
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            itemsPerPage={itemsPerPage}
-            setItemsPerPage={setItemsPerPage}
-            filteredEmployees={filteredEmployees}
-          />
+          
+          {loading ? (
+            <div className="flex justify-center items-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <EmployeeTable
+              displayedEmployees={displayedEmployees}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              setItemsPerPage={setItemsPerPage}
+              filteredEmployees={filteredEmployees}
+              employees={employees}
+              setEmployees={setEmployees}
+            />
+          )}
         </div>
       </div>
     </div>
