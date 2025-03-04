@@ -1,7 +1,7 @@
 // utils/pdfGenerator.ts
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { Employee } from "./Table"; // Adjust the import path accordingly
+import { Employee } from "./Table";
 
 export const generateEmployeePDF = (employee: Employee) => {
   const doc = new jsPDF({

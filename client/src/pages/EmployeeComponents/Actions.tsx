@@ -1,4 +1,5 @@
-import { useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
   Users,
@@ -63,7 +64,6 @@ const EmployeeActions = ({
   });
   const navigate = useNavigate();
 
-  // Get unique values for filter dropdowns
   const uniqueDepartments = [
     ...new Set(employees.map((emp) => emp.department)),
   ];
@@ -71,13 +71,16 @@ const EmployeeActions = ({
   const uniqueStatuses = [...new Set(employees.map((emp) => emp.status))];
   const uniqueRemarks = [...new Set(employees.map((emp) => emp.remarks))];
 
-  // Advanced filtering function
-  const applyFilters = () => {
-    let filteredData = employees.filter((employee) => {
+  const applyFilters = useCallback(() => {
+    const filteredData = employees.filter((employee) => {
       const matchesSearch =
+        searchQuery === "" ||
         employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        employee.middleName.toLowerCase().includes(searchQuery.toLowerCase());
+        employee.middleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        `${employee.firstName} ${employee.middleName} ${employee.lastName}`
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase());
 
       const matchesDepartment =
         !filters.department || employee.department === filters.department;
@@ -101,7 +104,11 @@ const EmployeeActions = ({
     });
 
     setFilteredEmployees(filteredData);
-  };
+  }, [employees, searchQuery, filters, setFilteredEmployees]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const filterSections = [
     {
@@ -126,7 +133,6 @@ const EmployeeActions = ({
     },
   ];
 
-  // Reset all filters
   const resetFilters = () => {
     setFilters({
       department: "",
@@ -140,11 +146,11 @@ const EmployeeActions = ({
   };
 
   const generatePDF = () => {
-    // Initialize PDF document in landscape mode
     const doc = new jsPDF("landscape");
     const pageWidth = doc.internal.pageSize.getWidth();
 
-    // Add header with title
+    const internalDoc = doc.internal as any;
+
     doc.setFillColor(51, 102, 204);
     doc.rect(0, 0, pageWidth, 25, "F");
     doc.setFont("helvetica", "bold");
@@ -157,7 +163,6 @@ const EmployeeActions = ({
     doc.setFontSize(10);
     doc.text(`As of: ${dateStr}`, pageWidth - 14, 10, { align: "right" });
 
-    // Company info
     doc.setTextColor(100, 100, 100);
     doc.setFontSize(10);
     doc.text("GLS Manpower Services", 14, 35);
@@ -167,8 +172,6 @@ const EmployeeActions = ({
       40
     );
     doc.text("gls_manpowerservices@yahoo.com | +63 (2) 8 526 5813", 14, 45);
-
-    // Add summary box
     doc.setDrawColor(220, 220, 220);
     doc.setFillColor(245, 245, 250);
     doc.roundedRect(pageWidth - 80, 30, 70, 20, 3, 3, "FD");
@@ -178,7 +181,6 @@ const EmployeeActions = ({
     doc.setFont("helvetica", "bold");
     doc.text(`${displayedEmployees.length}`, pageWidth - 30, 38);
 
-    // Define all columns to match the table headers exactly
     const columns = [
       { header: "Last Name", dataKey: "lastName" },
       { header: "First Name", dataKey: "firstName" },
@@ -201,12 +203,10 @@ const EmployeeActions = ({
       { header: "Remarks", dataKey: "remarks" },
     ];
 
-    // Format status for better appearance in PDF
     const formatStatus = (status: string) => {
       return status.charAt(0).toUpperCase() + status.slice(1);
     };
 
-    // Add table using the imported autoTable function
     autoTable(doc, {
       startY: 55,
       head: [columns.map((col) => col.header)],
@@ -253,19 +253,16 @@ const EmployeeActions = ({
       },
       columnStyles: {
         15: {
-          // Permanent Address
           cellWidth: "auto",
           overflow: "linebreak",
         },
         18: {
-          // Remarks
           cellWidth: "auto",
           overflow: "linebreak",
         },
       },
       didDrawPage: () => {
-        // Footer with page numbers
-        const pageCount = doc.internal.getNumberOfPages();
+        const pageCount = internalDoc.getNumberOfPages();
         doc.setFontSize(8);
         doc.setTextColor(100, 100, 100);
         for (let i = 1; i <= pageCount; i++) {
@@ -289,7 +286,6 @@ const EmployeeActions = ({
 
     doc.save("employee-complete-report.pdf");
   };
-
   return (
     <div className="p-4">
       {/* Desktop Layout */}

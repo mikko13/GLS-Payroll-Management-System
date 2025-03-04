@@ -24,6 +24,5 @@ export const getStatusColor = (status: string) => {
   
   export const getRemarksIcon = (remarks: string) => {
     if (!remarks) return null;
-    // Add logic for returning icons if needed
     return null;
   };

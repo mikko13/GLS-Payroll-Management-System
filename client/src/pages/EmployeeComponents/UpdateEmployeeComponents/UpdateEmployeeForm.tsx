@@ -65,13 +65,11 @@ const UpdateEmployeeForm: React.FC = () => {
   });
 
   useEffect(() => {
-    // First, check if employee data was passed through navigation state
     const stateEmployee = location.state?.employee;
 
     if (stateEmployee) {
       setFormData(stateEmployee);
     } else {
-      // If no state, fetch employee data by ID
       const fetchEmployee = async () => {
         try {
           const response = await axios.get(

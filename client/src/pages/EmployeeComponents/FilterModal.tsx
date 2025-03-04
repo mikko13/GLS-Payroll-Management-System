@@ -13,12 +13,10 @@ const FilterModal: React.FC<FilterModalProps> = ({
   onApplyFilters, 
   onClose 
 }) => {
-  // Unique filter options extracted from employees
   const departments = [...new Set(employees.map(e => e.department))];
   const positions = [...new Set(employees.map(e => e.position))];
   const statuses = [...new Set(employees.map(e => e.status))];
 
-  // Filter state
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [selectedPositions, setSelectedPositions] = useState<string[]>([]);
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
@@ -51,28 +49,24 @@ const FilterModal: React.FC<FilterModalProps> = ({
   const applyFilters = () => {
     let filteredResult = employees;
 
-    // Name search (case-insensitive)
     if (searchName) {
       filteredResult = filteredResult.filter(emp => 
         `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchName.toLowerCase())
       );
     }
 
-    // Department filter
     if (selectedDepartments.length > 0) {
       filteredResult = filteredResult.filter(emp => 
         selectedDepartments.includes(emp.department)
       );
     }
 
-    // Position filter
     if (selectedPositions.length > 0) {
       filteredResult = filteredResult.filter(emp => 
         selectedPositions.includes(emp.position)
       );
     }
 
-    // Status filter
     if (selectedStatuses.length > 0) {
       filteredResult = filteredResult.filter(emp => 
         selectedStatuses.includes(emp.status)
