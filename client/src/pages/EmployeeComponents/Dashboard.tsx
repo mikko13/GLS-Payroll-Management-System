@@ -8,6 +8,7 @@ import EmployeeTable from "./Table";
 
 const EmployeeDashboard = () => {
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,12 +22,12 @@ const EmployeeDashboard = () => {
       try {
         setLoading(true);
         const response = await axios.get("http://localhost:5000/api/employees");
-        // Add an 'id' field to each employee (using MongoDB's _id)
-        const employeesWithId = response.data.map(employee => ({
+        const employeesWithId = response.data.map((employee) => ({
           ...employee,
-          id: employee._id
+          id: employee._id,
         }));
         setEmployees(employeesWithId);
+        setFilteredEmployees(employeesWithId);
         setError(null);
       } catch (err) {
         console.error("Error fetching employees:", err);
@@ -38,15 +39,6 @@ const EmployeeDashboard = () => {
 
     fetchEmployees();
   }, []);
-  
-  const filteredEmployees = employees.filter(
-    (employee) =>
-      employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.middleName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.department.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const displayedEmployees = filteredEmployees.slice(
     (currentPage - 1) * itemsPerPage,
@@ -80,20 +72,21 @@ const EmployeeDashboard = () => {
               {error}
             </div>
           )}
-          
+
           <EmployeeStats
             totalEmployees={totalEmployees}
             activeEmployees={activeEmployees}
             regularEmployees={regularEmployees}
           />
-          
+
           <EmployeeActions
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             displayedEmployees={displayedEmployees}
-            loading={loading}
+            employees={employees}
+            setFilteredEmployees={setFilteredEmployees}
           />
-          
+
           {loading ? (
             <div className="flex justify-center items-center p-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

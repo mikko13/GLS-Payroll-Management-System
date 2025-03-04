@@ -73,10 +73,10 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
       <div className="flex-1 overflow-auto p-4">
         <div className="rounded-lg overflow-hidden shadow animate-fadeIn bg-white border border-blue-100">
           <div className="overflow-x-auto">
-            <table id="employee-table" className="w-full">
+            <table id="employee-table" className="w-full relative">
               <thead>
                 <tr className="text-xs text-gray-500 border-b border-blue-100 bg-blue-50">
-                  <th className="p-3 w-12 text-left"></th>
+                  <th className="p-3 w-12 text-left sticky left-0 bg-blue-50 z-10"></th>
                   <th className="p-3 text-left font-medium">Last Name</th>
                   <th className="p-3 text-left font-medium">First Name</th>
                   <th className="p-3 text-left font-medium">Middle Name</th>
@@ -98,7 +98,9 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                   <th className="p-3 text-left font-medium">Contact Number</th>
                   <th className="p-3 text-left font-medium">Status</th>
                   <th className="p-3 text-left font-medium">Remarks</th>
-                  <th className="p-3 text-left font-medium">Action</th>
+                  <th className="p-3 text-left font-medium sticky right-0 bg-blue-50 z-10">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -107,7 +109,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     key={employee.id}
                     className="border-b border-blue-50 hover:bg-blue-50 transition-all duration-200 animate-fadeIn"
                   >
-                    <td className="p-3"></td>
+                    <td className="p-3 sticky left-0 bg-white z-10"></td>
                     <td className="p-3 text-sm text-gray-800">
                       {employee.lastName}
                     </td>
@@ -182,7 +184,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                         </span>
                       )}
                     </td>
-                    <td className="p-3">
+                    <td className="p-3 sticky right-0 bg-white z-10">
                       <div className="flex items-center space-x-2">
                         <button
                           className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-600 transition-all duration-200 cursor-pointer"
@@ -210,6 +212,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
             </table>
           </div>
 
+          {/* Rest of the code remains the same */}
           <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-6 bg-white border-t border-blue-100">
             <div className="mb-4 sm:mb-0 text-sm text-gray-500">
               Showing {Math.min(1, filteredEmployees.length)} to{" "}

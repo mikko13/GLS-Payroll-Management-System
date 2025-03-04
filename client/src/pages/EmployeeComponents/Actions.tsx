@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { FileText, Users, Search, Filter, Plus, X } from "lucide-react";
+import {
+  FileText,
+  Users,
+  Search,
+  Filter,
+  Plus,
+  X,
+  ChevronDown,
+} from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { useNavigate } from "react-router-dom";
@@ -14,32 +22,122 @@ interface Employee {
   department: string;
   dateStarted: string;
   rate: string;
-  civilStatus: string;
-  birthDate: string;
-  sss: string;
-  hdmf: string;
-  philhealth: string;
-  tin: string;
-  emailAddress: string;
-  permanentAddress: string;
-  contactNumber: string;
   status: string;
   remarks: string;
+  civilStatus?: string;
+  birthDate?: string;
+  sss?: string;
+  hdmf?: string;
+  philhealth?: string;
+  tin?: string;
+  emailAddress?: string;
+  permanentAddress?: string;
+  contactNumber?: string;
 }
 
 interface EmployeeActionsProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   displayedEmployees: Employee[];
+  employees: Employee[];
+  setFilteredEmployees: (employees: Employee[]) => void;
 }
 
 const EmployeeActions = ({
   searchQuery,
   setSearchQuery,
   displayedEmployees,
+  employees,
+  setFilteredEmployees,
 }: EmployeeActionsProps) => {
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const [filterDropdownOpen, setFilterDropdownOpen] = useState(false);
+  const [activeFilterSection, setActiveFilterSection] = useState<string | null>(
+    null
+  );
+  const [filters, setFilters] = useState({
+    department: "",
+    position: "",
+    status: "",
+    remarks: "",
+  });
   const navigate = useNavigate();
+
+  // Get unique values for filter dropdowns
+  const uniqueDepartments = [
+    ...new Set(employees.map((emp) => emp.department)),
+  ];
+  const uniquePositions = [...new Set(employees.map((emp) => emp.position))];
+  const uniqueStatuses = [...new Set(employees.map((emp) => emp.status))];
+  const uniqueRemarks = [...new Set(employees.map((emp) => emp.remarks))];
+
+  // Advanced filtering function
+  const applyFilters = () => {
+    let filteredData = employees.filter((employee) => {
+      const matchesSearch =
+        employee.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        employee.middleName.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesDepartment =
+        !filters.department || employee.department === filters.department;
+
+      const matchesPosition =
+        !filters.position || employee.position === filters.position;
+
+      const matchesStatus =
+        !filters.status || employee.status === filters.status;
+
+      const matchesRemarks =
+        !filters.remarks || employee.remarks === filters.remarks;
+
+      return (
+        matchesSearch &&
+        matchesDepartment &&
+        matchesPosition &&
+        matchesStatus &&
+        matchesRemarks
+      );
+    });
+
+    setFilteredEmployees(filteredData);
+  };
+
+  const filterSections = [
+    {
+      label: "Department",
+      key: "department",
+      options: uniqueDepartments,
+    },
+    {
+      label: "Position",
+      key: "position",
+      options: uniquePositions,
+    },
+    {
+      label: "Status",
+      key: "status",
+      options: uniqueStatuses,
+    },
+    {
+      label: "Remarks",
+      key: "remarks",
+      options: uniqueRemarks,
+    },
+  ];
+
+  // Reset all filters
+  const resetFilters = () => {
+    setFilters({
+      department: "",
+      position: "",
+      status: "",
+      remarks: "",
+    });
+    setSearchQuery("");
+    setFilteredEmployees(employees);
+    setFilterDropdownOpen(false);
+  };
 
   const generatePDF = () => {
     // Initialize PDF document in landscape mode
@@ -121,15 +219,15 @@ const EmployeeActions = ({
         employee.department,
         employee.dateStarted,
         employee.rate,
-        employee.civilStatus,
-        employee.birthDate,
-        employee.sss,
-        employee.hdmf,
-        employee.philhealth,
-        employee.tin,
-        employee.emailAddress,
-        employee.permanentAddress,
-        employee.contactNumber,
+        employee.civilStatus || "",
+        employee.birthDate || "",
+        employee.sss || "",
+        employee.hdmf || "",
+        employee.philhealth || "",
+        employee.tin || "",
+        employee.emailAddress || "",
+        employee.permanentAddress || "",
+        employee.contactNumber || "",
         formatStatus(employee.status),
         employee.remarks,
       ]),
@@ -226,9 +324,127 @@ const EmployeeActions = ({
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             />
           </div>
-          <button className="p-2 rounded-md bg-white hover:bg-blue-50 transition-colors duration-200 border border-blue-200">
-            <Filter size={16} className="text-gray-400" />
-          </button>
+
+          {/* Advanced Filter Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+              className="p-2 rounded-md bg-white hover:bg-blue-50 transition-colors duration-200 border border-blue-200 flex items-center"
+            >
+              <Filter size={16} className="text-gray-400 mr-1" />
+              <ChevronDown size={14} className="text-gray-400" />
+            </button>
+
+            {filterDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-blue-100 rounded-lg shadow-lg p-4 z-50 animate-fade-in">
+                <div className="space-y-3">
+                  {/* Department Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Department
+                    </label>
+                    <select
+                      value={filters.department}
+                      onChange={(e) => {
+                        setFilters({ ...filters, department: e.target.value });
+                        applyFilters();
+                      }}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                    >
+                      <option value="">All Departments</option>
+                      {uniqueDepartments.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Position Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Position
+                    </label>
+                    <select
+                      value={filters.position}
+                      onChange={(e) => {
+                        setFilters({ ...filters, position: e.target.value });
+                        applyFilters();
+                      }}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                    >
+                      <option value="">All Positions</option>
+                      {uniquePositions.map((pos) => (
+                        <option key={pos} value={pos}>
+                          {pos}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Status Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Status
+                    </label>
+                    <select
+                      value={filters.status}
+                      onChange={(e) => {
+                        setFilters({ ...filters, status: e.target.value });
+                        applyFilters();
+                      }}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                    >
+                      <option value="">All Statuses</option>
+                      {uniqueStatuses.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Remarks Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Remarks
+                    </label>
+                    <select
+                      value={filters.remarks}
+                      onChange={(e) => {
+                        setFilters({ ...filters, remarks: e.target.value });
+                        applyFilters();
+                      }}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                    >
+                      <option value="">All Remarks</option>
+                      {uniqueRemarks.map((remark) => (
+                        <option key={remark} value={remark}>
+                          {remark}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Filter Actions */}
+                  <div className="flex justify-between mt-4">
+                    <button
+                      onClick={resetFilters}
+                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    >
+                      Reset Filters
+                    </button>
+                    <button
+                      onClick={() => setFilterDropdownOpen(false)}
+                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -238,7 +454,7 @@ const EmployeeActions = ({
           <div className="relative flex-1 mr-2">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search employees..."
               className="bg-white text-gray-800 px-3 py-2 rounded-md text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-500 border border-blue-200 transition-all duration-200"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -250,9 +466,117 @@ const EmployeeActions = ({
           </div>
 
           <div className="flex items-center space-x-2">
-            <button className="p-2 rounded-md bg-white hover:bg-blue-50 transition-colors duration-200 border border-blue-200">
-              <Filter size={16} className="text-gray-400" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+                className="p-2 rounded-md bg-white hover:bg-blue-50 transition-colors duration-200 border border-blue-200 flex items-center"
+              >
+                <Filter size={16} className="text-gray-400 mr-1" />
+                <ChevronDown size={14} className="text-gray-400" />
+              </button>
+
+              {filterDropdownOpen && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center">
+                  <div className="bg-white w-full rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up p-4 shadow-lg">
+                    <div className="flex justify-between items-center mb-4">
+                      <h2 className="text-lg font-semibold text-gray-800">
+                        Filter Employees
+                      </h2>
+                      <button
+                        onClick={() => setFilterDropdownOpen(false)}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        <X size={24} />
+                      </button>
+                    </div>
+
+                    {/* Filter Sections */}
+                    <div className="space-y-4">
+                      {filterSections.map((section) => (
+                        <div key={section.key}>
+                          <button
+                            onClick={() =>
+                              setActiveFilterSection(
+                                activeFilterSection === section.key
+                                  ? null
+                                  : section.key
+                              )
+                            }
+                            className="w-full flex justify-between items-center px-3 py-2 bg-blue-50 rounded-md"
+                          >
+                            <span className="text-sm font-medium">
+                              {section.label}
+                            </span>
+                            <ChevronDown
+                              size={16}
+                              className={`transform transition-transform ${
+                                activeFilterSection === section.key
+                                  ? "rotate-180"
+                                  : ""
+                              }`}
+                            />
+                          </button>
+
+                          {activeFilterSection === section.key && (
+                            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                              {section.options.map((option) => (
+                                <label
+                                  key={option}
+                                  className="flex items-center space-x-2 px-3 py-2 hover:bg-blue-50 rounded-md"
+                                >
+                                  <input
+                                    type="radio"
+                                    name={section.key}
+                                    value={option}
+                                    checked={
+                                      filters[
+                                        section.key as keyof typeof filters
+                                      ] === option
+                                    }
+                                    onChange={() => {
+                                      setFilters({
+                                        ...filters,
+                                        [section.key]:
+                                          filters[
+                                            section.key as keyof typeof filters
+                                          ] === option
+                                            ? ""
+                                            : option,
+                                      });
+                                    }}
+                                    className="form-radio text-blue-600"
+                                  />
+                                  <span className="text-sm">{option}</span>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Filter Actions */}
+                    <div className="flex justify-between mt-6 space-x-4">
+                      <button
+                        onClick={resetFilters}
+                        className="flex-1 text-sm text-gray-600 bg-gray-100 py-3 rounded-md hover:bg-gray-200 transition-colors"
+                      >
+                        Reset Filters
+                      </button>
+                      <button
+                        onClick={() => {
+                          applyFilters();
+                          setFilterDropdownOpen(false);
+                        }}
+                        className="flex-1 text-sm bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        Apply Filters
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             <button
               onClick={() => setMobileActionsOpen(!mobileActionsOpen)}
               className="p-2 rounded-md bg-gradient-to-r from-blue-700 to-blue-800 text-white transition-colors duration-200"
