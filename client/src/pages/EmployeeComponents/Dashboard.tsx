@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "../HeaderComponents/Header";
@@ -7,6 +8,7 @@ import EmployeeActions from "./Actions";
 import EmployeeTable from "./Table";
 
 const EmployeeDashboard = () => {
+  const location = useLocation();
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [loading, setLoading] = useState(true);

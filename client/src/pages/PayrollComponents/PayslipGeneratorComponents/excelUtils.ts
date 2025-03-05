@@ -1,7 +1,5 @@
-// excelUtils.js
 import * as XLSX from "xlsx-js-style";
 
-// Format currency values
 export const formatCurrency = (value) => {
   return value
     ? `${value.toLocaleString("en-US", {
@@ -11,7 +9,6 @@ export const formatCurrency = (value) => {
     : "";
 };
 
-// Create and format date for payslip
 export const formatPayslipDate = (date) => {
   return `${(date.getMonth() + 1)
     .toString()
@@ -22,44 +19,39 @@ export const formatPayslipDate = (date) => {
     .padStart(2, "0")}, ${date.getFullYear()}`;
 };
 
-// Format date for filename
 export const formatFilenameDate = (date) => {
   return `${date.getFullYear()}-${(date.getMonth() + 1)
     .toString()
     .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
 };
 
-// Create workbook and set up worksheet with column widths
 export const createWorkbook = () => {
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.aoa_to_sheet([]);
 
-  // Set column widths
   worksheet["!cols"] = [
-    { wch: 8.33 }, // A
-    { wch: 8.11 }, // B
-    { wch: 8.33 }, // C
-    { wch: 1.22 }, // D
-    { wch: 5.11 }, // E
-    { wch: 11.11 }, // F
-    { wch: 0.88 }, // G
-    { wch: 8.33 }, // H
-    { wch: 7.22 }, // I
-    { wch: 1.78 }, // J
-    { wch: 11.33 }, // K
+    { wch: 8.33 },
+    { wch: 8.11 }, 
+    { wch: 8.33 }, 
+    { wch: 1.22 }, 
+    { wch: 5.11 }, 
+    { wch: 11.11 }, 
+    { wch: 0.88 }, 
+    { wch: 8.33 }, 
+    { wch: 7.22 }, 
+    { wch: 1.78 }, 
+    { wch: 11.33 }, 
   ];
 
   return { workbook, worksheet };
 };
 
-// Apply style to a specific cell
 export const applyCellStyle = (worksheet, row, col, value, style) => {
   const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
   if (!worksheet[cellAddress]) worksheet[cellAddress] = { v: value };
   worksheet[cellAddress].s = style;
 };
 
-// Standard cell styles
 export const cellStyles = {
   companyName: {
     font: {

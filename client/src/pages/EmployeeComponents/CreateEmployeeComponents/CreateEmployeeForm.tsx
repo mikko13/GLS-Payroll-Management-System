@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast, Toaster } from "sonner";
 
 interface CreateEmployeeFormProps {
   onSubmit?: (employeeData: Omit<Employee, "id">) => void;
@@ -58,7 +59,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
     department: "",
     dateStarted: "",
     rate: "80.625",
-    civilStatus: "ingle",
+    civilStatus: "Single",
     birthDate: "",
     sss: "",
     hdmf: "",
@@ -95,15 +96,29 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
         onSubmit(formData);
       }
 
-      navigate("/employees", {
-        state: { message: "Employee created successfully!", type: "success" },
+      toast.success("Employee created successfully!", {
+        description: `${formData.firstName} ${formData.lastName} has been added to the system.`,
+        duration: 3000,
       });
+
+      setTimeout(() => {
+        navigate("/Employees", {
+          state: { message: "Employee created successfully!", type: "success" },
+        });
+      }, 3000);
     } catch (err) {
       console.error("Error creating employee:", err);
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.message || "Failed to create employee");
+        toast.error("Failed to create employee", {
+          description:
+            err.response.data.message || "An unexpected error occurred.",
+        });
       } else {
         setError("An unexpected error occurred. Please try again.");
+        toast.error("Error", {
+          description: "An unexpected error occurred. Please try again.",
+        });
       }
       setIsSubmitting(false);
     }
@@ -567,7 +582,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
           </div>
 
           <div className="flex justify-end space-x-3 mt-4 md:mt-6">
-          <button
+            <button
               type="button"
               onClick={() => navigate("/employees")}
               className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm cursor-pointer"
@@ -589,6 +604,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
           </div>
         </form>
       </div>
+      <Toaster position="bottom-left" richColors />
     </div>
   );
 };

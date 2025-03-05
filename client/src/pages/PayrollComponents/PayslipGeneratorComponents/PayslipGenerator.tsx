@@ -1,4 +1,3 @@
-// PayslipGenerator.jsx - Main component
 import { useState } from "react";
 import GenerateButton from "./GenerateButton";
 import usePayslipGenerator from "./usePayslipGenerator";

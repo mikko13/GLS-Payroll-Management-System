@@ -1,7 +1,5 @@
-// server/src/models/Employee.ts - Fixed Mongoose model for Employee
 import mongoose, { Document, Schema } from "mongoose";
 
-// Interface for Employee document
 export interface IEmployee extends Document {
   lastName: string;
   firstName: string;
@@ -26,7 +24,6 @@ export interface IEmployee extends Document {
   updatedAt: Date;
 }
 
-// Employee Schema
 const EmployeeSchema: Schema = new Schema(
   {
     lastName: { type: String, required: true },
@@ -61,6 +58,9 @@ const EmployeeSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-// Create and export the model
 const EmployeeModel = mongoose.model<IEmployee>("Employee", EmployeeSchema);
 export default EmployeeModel;
+
+export interface CreatePayrollFormProps {
+  onSubmit?: (formData: any) => void;
+}

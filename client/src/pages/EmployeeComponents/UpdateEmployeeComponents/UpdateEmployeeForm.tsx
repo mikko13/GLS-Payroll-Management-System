@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import {
   Save,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
+import { toast, Toaster } from "sonner";
 
 interface Employee {
   id: string;
@@ -79,6 +81,9 @@ const UpdateEmployeeForm: React.FC = () => {
         } catch (err) {
           console.error("Error fetching employee:", err);
           setError("Failed to load employee data");
+          toast.error("Failed to load employee data", {
+            description: "Unable to retrieve employee information.",
+          });
         }
       };
 
@@ -106,20 +111,34 @@ const UpdateEmployeeForm: React.FC = () => {
         formData
       );
 
-      navigate("/employees", {
-        state: { message: "Employee updated successfully!", type: "success" },
+      toast.success("Employee updated successfully!", {
+        description: `${formData.firstName} ${formData.lastName}'s information has been updated.`,
+        duration: 3000,
       });
+
+      setTimeout(() => {
+        navigate("/employees", {
+          state: { message: "Employee updated successfully!", type: "success" },
+        });
+      }, 3000);
     } catch (err) {
       console.error("Error updating employee:", err);
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.message || "Failed to update employee");
+        toast.error("Failed to update employee", {
+          description:
+            err.response.data.message || "An unexpected error occurred.",
+        });
       } else {
         setError("An unexpected error occurred. Please try again.");
+        toast.error("Error", {
+          description: "An unexpected error occurred. Please try again.",
+        });
       }
       setIsSubmitting(false);
     }
   };
-
+  
   const getRemarksColor = (remarks: string) => {
     switch (remarks) {
       case "Active":
@@ -600,6 +619,7 @@ const UpdateEmployeeForm: React.FC = () => {
           </div>
         </form>
       </div>
+      <Toaster position="bottom-left" richColors />
     </div>
   );
 };

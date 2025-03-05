@@ -16,6 +16,7 @@ interface Employee {
   serviceIncentiveLeave: number;
   overtime: number;
   totalAmount: number;
+  hdmf: number;
   hdmfLoans: number;
   sss: number;
   phic: number;
@@ -34,9 +35,8 @@ interface EmployeeTableProps {
   setCurrentPage: (value: number) => void;
 }
 
-const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
+const PayrollTable: React.FC<EmployeeTableProps> = ({
   employees,
-  handleCheckboxChange,
   getStatusColor,
   getStatusIcon,
   itemsPerPage,
@@ -50,19 +50,24 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
     return employees.slice(startIndex, endIndex);
   }, [employees, currentPage, itemsPerPage]);
 
+  const nightDifferentialAmount = (employee: Employee) =>
+    employee.regularNightDifferential * 8.06;
+
+  const regularHolidayAmount = (employee: Employee) =>
+    employee.regularHoliday * 161.25;
+
+  const specialHolidayAmount = (employee: Employee) =>
+    employee.specialHoliday * 104.81;
+
+  const overtimeAmount = (employee: Employee) => employee.overtime * 100.78;
+
   return (
     <div className="flex-1 overflow-auto p-4">
       <div className="rounded-lg overflow-hidden shadow animate-fadeIn bg-white border border-blue-100">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full relative">
             <thead>
               <tr className="text-xs text-gray-500 border-b border-blue-100 bg-blue-50">
-                <th className="p-3 w-12 text-left">
-                  <input
-                    type="checkbox"
-                    className="rounded bg-white border-blue-200"
-                  />
-                </th>
                 <th className="p-3 text-left font-medium">Employee</th>
                 <th className="p-3 text-left font-medium">Regular Hours</th>
                 <th className="p-3 text-left font-medium">Hourly Rate</th>
@@ -80,12 +85,15 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
                 </th>
                 <th className="p-3 text-left font-medium">Overtime</th>
                 <th className="p-3 text-left font-medium">Total Amount</th>
+                <th className="p-3 text-left font-medium">HDMF</th>
                 <th className="p-3 text-left font-medium">HDMF Loans</th>
                 <th className="p-3 text-left font-medium">SSS</th>
                 <th className="p-3 text-left font-medium">PHIC</th>
                 <th className="p-3 text-left font-medium">Net Pay</th>
                 <th className="p-3 text-left font-medium">Status</th>
-                <th className="p-3 text-left font-medium">Actions</th>
+                <th className="p-3 text-left font-medium sticky right-0 bg-blue-50 z-10">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -95,21 +103,7 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
                   className="border-b border-blue-50 hover:bg-blue-50 transition-all duration-200 animate-fadeIn"
                 >
                   <td className="p-3">
-                    <input
-                      type="checkbox"
-                      checked={employee.checked}
-                      onChange={() => handleCheckboxChange(employee.id)}
-                      className="rounded bg-white border-blue-200"
-                    />
-                  </td>
-                  <td className="p-3">
                     <div className="flex items-center">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center text-white mr-3 shadow">
-                        {employee.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
                       <span className="text-sm text-gray-800 font-medium">
                         {employee.name}
                       </span>
@@ -125,25 +119,28 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
                     ₱{employee.totalRegularWage.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.regularNightDifferential.toLocaleString()}
+                    ₱{nightDifferentialAmount(employee).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
                     ₱{employee.prorated13thMonthPay.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.specialHoliday.toLocaleString()}
+                    ₱{specialHolidayAmount(employee).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.regularHoliday.toLocaleString()}
+                    ₱{regularHolidayAmount(employee).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
                     ₱{employee.serviceIncentiveLeave.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.overtime.toLocaleString()}
+                    ₱{overtimeAmount(employee).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
                     ₱{employee.totalAmount.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm text-gray-800">
+                    ₱{employee.hdmf.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
                     ₱{employee.hdmfLoans.toLocaleString()}
@@ -167,7 +164,7 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
                       {employee.status}
                     </span>
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 sticky right-0 bg-white z-10">
                     <div className="flex items-center space-x-2">
                       <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200">
                         <Eye size={16} />
@@ -197,4 +194,4 @@ const EmployeeTableComponent: React.FC<EmployeeTableProps> = ({
   );
 };
 
-export default EmployeeTableComponent;
+export default PayrollTable;

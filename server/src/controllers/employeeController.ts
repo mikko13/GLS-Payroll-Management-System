@@ -1,8 +1,6 @@
-// server/src/controllers/employeeController.ts - Fixed controller functions
 import { Request, Response } from "express";
 import EmployeeModel from "../models/Employee";
 
-// Get all employees
 export const getAllEmployees = async (req: Request, res: Response) => {
   try {
     const employees = await EmployeeModel.find().sort({ createdAt: -1 });
@@ -13,7 +11,6 @@ export const getAllEmployees = async (req: Request, res: Response) => {
   }
 };
 
-// Get employee by ID
 export const getEmployeeById = async (req: Request, res: Response) => {
   try {
     const employee = await EmployeeModel.findById(req.params.id);
@@ -29,7 +26,6 @@ export const getEmployeeById = async (req: Request, res: Response) => {
   }
 };
 
-// Create new employee
 export const createEmployee = async (req: Request, res: Response) => {
   try {
     const newEmployee = new EmployeeModel(req.body);
@@ -45,7 +41,6 @@ export const createEmployee = async (req: Request, res: Response) => {
   }
 };
 
-// Update employee
 export const updateEmployee = async (req: Request, res: Response) => {
   try {
     const updatedEmployee = await EmployeeModel.findByIdAndUpdate(
@@ -68,7 +63,6 @@ export const updateEmployee = async (req: Request, res: Response) => {
   }
 };
 
-// Delete employee
 export const deleteEmployee = async (req: Request, res: Response) => {
   try {
     const deletedEmployee = await EmployeeModel.findByIdAndDelete(

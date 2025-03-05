@@ -1,4 +1,3 @@
-// GenerateButton.jsx
 import { Receipt, Loader } from "lucide-react";
 
 const GenerateButton = ({ onClick, isGenerating, disabled }) => {

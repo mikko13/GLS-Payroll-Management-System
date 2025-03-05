@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Download, Edit, Trash } from "lucide-react";
+import { Download, Edit, Trash } from "lucide-react";
 import { generateEmployeePDF } from "./pdfGenerator";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +9,20 @@ import {
   getRemarksColor,
   getRemarksIcon,
 } from "./employeeUtils";
-import DeleteConfirmationModal from "./DeleteConfirmationModal";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Employee, EmployeeTableProps } from "./types";
+import PaginationComponent from "./Pagination";
+import { toast, Toaster } from "sonner";
+import { Button } from "@/components/ui/button";
 
 const EmployeeTable: React.FC<EmployeeTableProps> = ({
   displayedEmployees,
@@ -21,21 +34,24 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   employees,
   setEmployees,
 }) => {
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
     null
   );
 
   const handleDownloadPDF = (employee: Employee) => {
-    generateEmployeePDF(employee);
+    try {
+      generateEmployeePDF(employee);
+      toast.success("Employee PDF downloaded successfully", {
+        description: `PDF for ${employee.firstName} ${employee.lastName} has been generated.`,
+      });
+    } catch (error) {
+      toast.error("Failed to download PDF", {
+        description: "An error occurred while generating the PDF.",
+      });
+    }
   };
 
   const navigate = useNavigate();
-
-  const openDeleteModal = (employee: Employee) => {
-    setEmployeeToDelete(employee);
-    setDeleteModalOpen(true);
-  };
 
   const handleEditEmployee = (employee: Employee) => {
     navigate(`/Employees/UpdateEmployee/${employee.id}`, {
@@ -56,16 +72,17 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
       );
       setEmployees(updatedEmployees);
 
-      setDeleteModalOpen(false);
+      toast.success("Employee Deleted", {
+        description: `${employeeToDelete.firstName} ${employeeToDelete.lastName} has been removed from the system.`,
+      });
+
       setEmployeeToDelete(null);
     } catch (error) {
       console.error("Error deleting employee:", error);
+      toast.error("Delete Failed", {
+        description: "An error occurred while deleting the employee.",
+      });
     }
-  };
-
-  const closeDeleteModal = () => {
-    setDeleteModalOpen(false);
-    setEmployeeToDelete(null);
   };
 
   return (
@@ -73,10 +90,9 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
       <div className="flex-1 overflow-auto p-4">
         <div className="rounded-lg overflow-hidden shadow animate-fadeIn bg-white border border-blue-100">
           <div className="overflow-x-auto">
-            <table id="employee-table" className="w-full relative">
+            <table className="w-full relative">
               <thead>
                 <tr className="text-xs text-gray-500 border-b border-blue-100 bg-blue-50">
-                  <th className="p-3 w-12 text-left sticky left-0 bg-blue-50 z-10"></th>
                   <th className="p-3 text-left font-medium">Last Name</th>
                   <th className="p-3 text-left font-medium">First Name</th>
                   <th className="p-3 text-left font-medium">Middle Name</th>
@@ -109,7 +125,6 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     key={employee.id}
                     className="border-b border-blue-50 hover:bg-blue-50 transition-all duration-200 animate-fadeIn"
                   >
-                    <td className="p-3 sticky left-0 bg-white z-10"></td>
                     <td className="p-3 text-sm text-gray-800">
                       {employee.lastName}
                     </td>
@@ -187,23 +202,52 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                     <td className="p-3 sticky right-0 bg-white z-10">
                       <div className="flex items-center space-x-2">
                         <button
-                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-600 transition-all duration-200 cursor-pointer"
+                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
                           onClick={() => handleEditEmployee(employee)}
                         >
                           <Edit size={16} />
                         </button>
                         <button
-                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-600 transition-all duration-200 cursor-pointer"
+                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
                           onClick={() => handleDownloadPDF(employee)}
                         >
                           <Download size={16} />
                         </button>
-                        <button
-                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer"
-                          onClick={() => openDeleteModal(employee)}
-                        >
-                          <Trash size={16} />
-                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer"
+                              onClick={() => setEmployeeToDelete(employee)}
+                            >
+                              <Trash size={16} />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                Are you absolutely sure?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will
+                                permanently delete the employee record for{" "}
+                                {employeeToDelete?.firstName}{" "}
+                                {employeeToDelete?.lastName} from the system.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="cursor-pointer">
+                                Cancel
+                              </AlertDialogCancel>
+                              <Button
+                                variant="destructive"
+                                onClick={handleDeleteEmployee}
+                                className="cursor-pointer"
+                              >
+                                Delete
+                              </Button>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </td>
                   </tr>
@@ -212,75 +256,21 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
             </table>
           </div>
 
-          {/* Rest of the code remains the same */}
-          <div className="flex flex-col sm:flex-row justify-between items-center py-4 px-6 bg-white border-t border-blue-100">
-            <div className="mb-4 sm:mb-0 text-sm text-gray-500">
-              Showing {Math.min(1, filteredEmployees.length)} to{" "}
-              {Math.min(itemsPerPage, filteredEmployees.length)} of{" "}
-              {filteredEmployees.length} entries
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center mr-4">
-                <span className="text-sm text-gray-500 mr-2">Display</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
-                  className="border border-blue-100 rounded px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                </select>
-              </div>
-              <button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className={`p-2 rounded ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400"
-                    : "bg-blue-50 text-gray-600 hover:bg-blue-100 hover:text-blue-700"
-                } transition-all duration-200`}
-              >
-                <ChevronLeft size={16} />
-              </button>
-              <button className="h-8 w-8 rounded flex items-center justify-center text-sm transition-all duration-200 bg-blue-600 text-white">
-                {currentPage}
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage(
-                    Math.min(
-                      Math.ceil(filteredEmployees.length / itemsPerPage),
-                      currentPage + 1
-                    )
-                  )
-                }
-                disabled={
-                  currentPage ===
-                    Math.ceil(filteredEmployees.length / itemsPerPage) ||
-                  filteredEmployees.length === 0
-                }
-                className={`p-2 rounded ${
-                  currentPage ===
-                    Math.ceil(filteredEmployees.length / itemsPerPage) ||
-                  filteredEmployees.length === 0
-                    ? "bg-gray-100 text-gray-400"
-                    : "bg-blue-50 text-gray-600 hover:bg-blue-100 hover:text-blue-700"
-                } transition-all duration-200`}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+          <PaginationComponent
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalItems={filteredEmployees.length}
+          />
         </div>
+        <Toaster
+          richColors
+          position="bottom-left"
+          expand={true}
+          duration={3000}
+        />
       </div>
-
-      <DeleteConfirmationModal
-        isOpen={deleteModalOpen}
-        employeeToDelete={employeeToDelete}
-        onCancel={closeDeleteModal}
-        onConfirmDelete={handleDeleteEmployee}
-      />
     </>
   );
 };

@@ -1,4 +1,4 @@
-import { Users, Zap, ZapOff } from "lucide-react";
+import { UserRoundCheck, Users, Zap } from "lucide-react";
 
 interface EmployeeStatsProps {
   totalEmployees: number;
@@ -34,7 +34,7 @@ const EmployeeStats = ({
       <div className="bg-white rounded-lg p-4 border border-blue-100 shadow">
         <div className="flex items-center justify-between mb-2">
           <div className="text-gray-500 text-sm">Regular Employees</div>
-          <ZapOff size={18} className="text-blue-800" />
+          <UserRoundCheck size={18} className="text-blue-800" />
         </div>
         <div className="text-gray-800 text-xl md:text-2xl font-bold">
           {regularEmployees}

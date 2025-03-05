@@ -1,4 +1,5 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect } from "react";
 import { Calendar, CheckCircle } from "lucide-react";
 
 interface PayPeriodProps {
@@ -10,6 +11,83 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
   payPeriod,
   setPayPeriod,
 }) => {
+  const [payPeriods, setPayPeriods] = useState<string[]>([]);
+  const [lastGeneratedYear, setLastGeneratedYear] = useState<number>(
+    new Date().getFullYear()
+  );
+
+  const generatePayPeriods = () => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const periods: string[] = [];
+
+    for (let year = currentYear; year <= 2030; year++) {
+      for (let month = 0; month < 12; month++) {
+        const firstPeriod = new Date(year, month, 15);
+        const firstPeriodString = `${firstPeriod.toLocaleString("default", {
+          month: "long",
+        })} 1-15, ${firstPeriod.getFullYear()}`;
+        periods.push(firstPeriodString);
+
+        const secondPeriod = new Date(
+          year,
+          month,
+          getLastDayOfMonth(new Date(year, month, 1))
+        );
+        const secondPeriodString = `${secondPeriod.toLocaleString("default", {
+          month: "long",
+        })} 16-${secondPeriod.getDate()}, ${secondPeriod.getFullYear()}`;
+        periods.push(secondPeriodString);
+      }
+    }
+
+    periods.sort((a, b) => {
+      const parseDate = (periodString: string) => {
+        const [monthPart, datePart, yearPart] = periodString.split(" ");
+        const monthIndex = new Date(
+          Date.parse(monthPart + " 1, 2000")
+        ).getMonth();
+        const year = parseInt(yearPart);
+        const isFirstHalf = datePart.includes("1-15");
+        return new Date(year, monthIndex, isFirstHalf ? 1 : 16);
+      };
+
+      return parseDate(a).getTime() - parseDate(b).getTime();
+    });
+
+    setPayPeriods(periods);
+    setLastGeneratedYear(2030);
+
+    const currentPeriod = periods.find((period) => {
+      const periodDate = new Date();
+      const [monthPart, datePart, yearPart] = period.split(" ");
+      const monthIndex = new Date(
+        Date.parse(monthPart + " 1, 2000")
+      ).getMonth();
+      const year = parseInt(yearPart);
+
+      return (
+        monthIndex === periodDate.getMonth() &&
+        year === periodDate.getFullYear() &&
+        (datePart.includes("1-15")
+          ? periodDate.getDate() <= 15
+          : periodDate.getDate() > 15)
+      );
+    });
+
+    if (currentPeriod && !payPeriod) {
+      setPayPeriod(currentPeriod);
+    }
+  };
+
+  const getLastDayOfMonth = (date: Date): number => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  useEffect(() => {
+    generatePayPeriods();
+  }, []);
+
   return (
     <div className="p-4 bg-blue-50 border-b border-blue-100">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
@@ -25,10 +103,11 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
             value={payPeriod}
             onChange={(e) => setPayPeriod(e.target.value)}
           >
-            <option>February 1-15, 2025</option>
-            <option>January 16-31, 2025</option>
-            <option>January 1-15, 2025</option>
-            <option>December 16-31, 2024</option>
+            {payPeriods.map((period, index) => (
+              <option key={index} value={period}>
+                {period}
+              </option>
+            ))}
           </select>
         </div>
         <div className="text-emerald-600 flex items-center">

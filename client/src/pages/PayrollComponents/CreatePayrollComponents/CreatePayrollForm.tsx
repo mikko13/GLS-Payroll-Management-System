@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Save,
   ArrowLeft,
@@ -7,54 +7,65 @@ import {
   DollarSign,
   PlusCircle,
   MinusCircle,
+  Loader,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-interface CreatePayrollFormProps {
-  onSubmit: (payrollData: Omit<Employee, "id" | "checked">) => void;
-  onCancel: () => void;
-  onBack?: () => void;
-}
-
-interface Employee {
-  id: string;
-  name: string;
-  checked: boolean;
-  numberOfRegularHours: number;
-  hourlyRate: number;
-  totalRegularWage: number;
-  regularNightDifferential: number;
-  prorated13thMonthPay: number;
-  specialHoliday: number;
-  regularHoliday: number;
-  serviceIncentiveLeave: number;
-  overtime: number;
-  totalAmount: number;
-  hdmfLoans: number;
-  sss: number;
-  phic: number;
-  netPay: number;
-  status: string;
-}
+import { CreatePayrollFormProps } from "./Interfaces";
+import { getStatusColor, calculateDerivedValues } from "./Utils";
+import axios from "axios";
 
 const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [employees, setEmployees] = useState<IEmployee[]>([]);
 
   const [formData, setFormData] = useState({
     name: "",
-    numberOfRegularHours: null,
-    hourlyRate: null,
-    regularNightDifferential: null,
-    prorated13thMonthPay: null,
-    specialHoliday: null,
-    regularHoliday: null,
-    serviceIncentiveLeave: null,
-    overtime: null,
-    hdmfLoans: null,
-    sss: null,
-    phic: null,
+    numberOfRegularHours: 8,
+    hourlyRate: 80.625,
+    regularNightDifferential: 0,
+    prorated13thMonthPay: 0,
+    specialHoliday: 0,
+    regularHoliday: 0,
+    serviceIncentiveLeave: 0,
+    overtime: 0,
+    hdmf: 0,
+    hdmfLoans: 0,
+    sss: 0,
+    phic: 0,
     status: "Pending",
   });
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/employees");
+        setEmployees(response.data);
+      } catch (err) {
+        console.error("Error fetching employees:", err);
+        setError("Failed to load employees");
+      }
+    };
+
+    fetchEmployees();
+  }, []);
+
+  const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedEmployeeId = e.target.value;
+    const selectedEmployee = employees.find(
+      (emp) => emp._id === selectedEmployeeId
+    );
+
+    if (selectedEmployee) {
+      setFormData((prev) => ({
+        ...prev,
+        employeeId: selectedEmployeeId,
+        name: `${selectedEmployee.lastName}, ${selectedEmployee.firstName}`,
+        hourlyRate: parseFloat(selectedEmployee.rate) || 80.625, // Use employee's rate or default
+      }));
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -62,7 +73,6 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
     const { name, value } = e.target;
     let parsedValue: string | number | null = value;
 
-    // Parse numeric fields
     if (name !== "name" && name !== "status") {
       parsedValue = value === "" ? null : parseFloat(value);
     }
@@ -70,63 +80,41 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
   };
 
-  const calculateDerivedValues = () => {
-    const totalRegularWage =
-      (formData.numberOfRegularHours || 0) * (formData.hourlyRate || 0);
+  const { totalRegularWage, totalAmount, netPay } =
+    calculateDerivedValues(formData);
 
-    const totalAmount =
-      totalRegularWage +
-      (formData.regularNightDifferential || 0) +
-      (formData.prorated13thMonthPay || 0) +
-      (formData.specialHoliday || 0) +
-      (formData.regularHoliday || 0) +
-      (formData.serviceIncentiveLeave || 0) +
-      (formData.overtime || 0);
-
-    const netPay =
-      totalAmount -
-      (formData.hdmfLoans || 0) -
-      (formData.sss || 0) -
-      (formData.phic || 0);
-
-    return {
-      totalRegularWage,
-      totalAmount,
-      netPay,
-    };
-  };
-
-  const { totalRegularWage, totalAmount, netPay } = calculateDerivedValues();
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
-    const payrollData = {
-      ...formData,
-      totalRegularWage,
-      totalAmount,
-      netPay,
-    };
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/payrolls",
+        formData
+      );
 
-    onSubmit(payrollData);
-  };
+      if (onSubmit) {
+        onSubmit(formData);
+      }
 
-  // Calculate status badge color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "Processed":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
+      navigate("/Payroll", {
+        state: { message: "Payroll created successfully!", type: "success" },
+      });
+    } catch (err) {
+      console.error("Error creating payrolll:", err);
+      if (axios.isAxiosError(err) && err.response) {
+        setError(err.response.data.message || "Failed to create payroll");
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="h-full w-full p-4 md:p-6">
-        {/* Header with back button */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <button
@@ -151,8 +139,13 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
           </div>
         </div>
 
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
-          {/* Card for Employee Information */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <CreditCard className="text-blue-600 mr-2" size={18} />
@@ -164,21 +157,26 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label
-                  htmlFor="name"
+                  htmlFor="employeeId"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Employee Name
+                  Select Employee
                 </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
+                <select
+                  id="employeeId"
+                  name="employeeId"
                   required
-                  value={formData.name}
-                  onChange={handleChange}
+                  value={formData.employeeId}
+                  onChange={handleEmployeeChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                  placeholder="Enter employee name"
-                />
+                >
+                  <option value="">Select an employee</option>
+                  {employees.map((employee) => (
+                    <option key={employee._id} value={employee._id}>
+                      {`${employee.lastName}, ${employee.firstName}`}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
@@ -202,7 +200,6 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
-          {/* Card for Regular Work */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <Clock className="text-blue-600 mr-2" size={18} />
@@ -224,17 +221,14 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                   id="numberOfRegularHours"
                   name="numberOfRegularHours"
                   min="0"
-                  step="0.01"
-                  value={
-                    formData.numberOfRegularHours === null
-                      ? ""
-                      : formData.numberOfRegularHours
-                  }
+                  step="0.1"
+                  value={formData.numberOfRegularHours}
                   onChange={handleChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                 />
               </div>
 
+              {/* Similar modifications for other number inputs */}
               <div className="space-y-2">
                 <label
                   htmlFor="hourlyRate"
@@ -247,7 +241,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                   id="hourlyRate"
                   name="hourlyRate"
                   min="0"
-                  step="0.01"
+                  step="0.001"
                   value={formData.hourlyRate}
                   onChange={handleChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
@@ -273,7 +267,6 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
-          {/* Card for Additional Pay */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <PlusCircle className="text-green-600 mr-2" size={18} />
@@ -288,7 +281,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                   htmlFor="regularNightDifferential"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Night Differential (₱)
+                  Night Differential (₱) (8.06)
                 </label>
                 <input
                   type="number"
@@ -326,14 +319,14 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                   htmlFor="overtime"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Overtime (₱)
+                  Overtime (₱) (100.78)
                 </label>
                 <input
                   type="number"
                   id="overtime"
                   name="overtime"
                   min="0"
-                  step="0.01"
+                  step="0"
                   value={formData.overtime}
                   onChange={handleChange}
                   className="w-full rounded-md border border-green-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
@@ -345,7 +338,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                   htmlFor="specialHoliday"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Special Holiday (₱)
+                  Special Holiday (₱) (104.81)
                 </label>
                 <input
                   type="number"
@@ -364,14 +357,14 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                   htmlFor="regularHoliday"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Regular Holiday (₱)
+                  Regular Holiday (₱) (161.25)
                 </label>
                 <input
                   type="number"
                   id="regularHoliday"
                   name="regularHoliday"
                   min="0"
-                  step="0.01"
+                  step="0.5"
                   value={formData.regularHoliday}
                   onChange={handleChange}
                   className="w-full rounded-md border border-green-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
@@ -399,74 +392,95 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
-          {/* Card for Deductions */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <MinusCircle className="text-red-600 mr-2" size={18} />
               <h3 className="text-md font-semibold text-red-800">Deductions</h3>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label
-                  htmlFor="hdmfLoans"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  HDMF Loans (₱)
-                </label>
-                <input
-                  type="number"
-                  id="hdmfLoans"
-                  name="hdmfLoans"
-                  min="0"
-                  step="0.01"
-                  value={formData.hdmfLoans}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="hdmf"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    HDMF (₱)
+                  </label>
+                  <input
+                    type="number"
+                    id="hdmf"
+                    name="hdmf"
+                    min="0"
+                    step="0.01"
+                    value={formData.hdmf}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="hdmfLoans"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    HDMF Loans (₱)
+                  </label>
+                  <input
+                    type="number"
+                    id="hdmfLoans"
+                    name="hdmfLoans"
+                    min="0"
+                    step="0.01"
+                    value={formData.hdmfLoans}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label
-                  htmlFor="sss"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  SSS (₱)
-                </label>
-                <input
-                  type="number"
-                  id="sss"
-                  name="sss"
-                  min="0"
-                  step="0.01"
-                  value={formData.sss}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-                />
-              </div>
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="sss"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    SSS (₱)
+                  </label>
+                  <input
+                    type="number"
+                    id="sss"
+                    name="sss"
+                    min="0"
+                    step="0.01"
+                    value={formData.sss}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <label
-                  htmlFor="phic"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  PHIC (₱)
-                </label>
-                <input
-                  type="number"
-                  id="phic"
-                  name="phic"
-                  min="0"
-                  step="0.01"
-                  value={formData.phic}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
-                />
+                <div className="space-y-2">
+                  <label
+                    htmlFor="phic"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    PHIC (₱)
+                  </label>
+                  <input
+                    type="number"
+                    id="phic"
+                    name="phic"
+                    min="0"
+                    step="0.01"
+                    value={formData.phic}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 transition-all duration-200"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Summary Card */}
           <div className="bg-blue-50 p-4 md:p-5 rounded-lg shadow-sm border border-blue-200">
             <div className="flex items-center mb-4">
               <DollarSign className="text-blue-700 mr-2" size={18} />
@@ -512,19 +526,25 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex justify-end space-x-3 mt-4 md:mt-6">
             <button
               type="button"
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm"
+              onClick={() => navigate("/Payroll")}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 border border-transparent rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm flex items-center"
+              disabled={isSubmitting}
+              className="px-6 py-2 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm flex items-center cursor-pointer"
             >
-              <Save size={16} className="mr-2" /> Save Record
+              {isSubmitting ? (
+                <Loader size={16} className="mr-2 animate-spin" />
+              ) : (
+                <Save size={16} className="mr-2" />
+              )}
+              {isSubmitting ? "Saving..." : "Save Payroll"}
             </button>
           </div>
         </form>

@@ -4,8 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import employeeRoutes from "./routes/employeeRoutes";
+import payrollRoutes from "./routes/payrollRoutes";
 
-const envPath = path.resolve(__dirname, '..', '.env');
+const envPath = path.resolve(__dirname, "..", ".env");
 
 dotenv.config({ path: envPath });
 
@@ -39,6 +40,7 @@ mongoose
   });
 
 app.use("/api/employees", employeeRoutes);
+app.use("/api/payrolls", payrollRoutes);
 
 app.get("/", (req, res) => {
   res.send("Employee Management API is running");
