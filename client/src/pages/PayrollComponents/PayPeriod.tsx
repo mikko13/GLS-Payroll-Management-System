@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from "react";
 import { Calendar, CheckCircle } from "lucide-react";
 
@@ -15,6 +14,7 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
   const [lastGeneratedYear, setLastGeneratedYear] = useState<number>(
     new Date().getFullYear()
   );
+  const [isVisible, setIsVisible] = useState(false);
 
   const generatePayPeriods = () => {
     const currentDate = new Date();
@@ -86,10 +86,22 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
 
   useEffect(() => {
     generatePayPeriods();
+
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="p-4 bg-blue-50 border-b border-blue-100">
+    <div
+      className="p-4 bg-blue-50 border-b border-blue-100 transition-all duration-500 ease-out"
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(-10px)",
+      }}
+    >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
         <div className="flex items-center flex-wrap gap-2 sm:gap-3">
           <div className="flex items-center">
@@ -110,7 +122,14 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
             ))}
           </select>
         </div>
-        <div className="text-emerald-600 flex items-center">
+        <div
+          className="text-emerald-600 flex items-center transition-all duration-500 ease-out"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transform: isVisible ? "translateX(0)" : "translateX(10px)",
+            transitionDelay: "200ms",
+          }}
+        >
           <CheckCircle size={16} className="mr-2" />
           <span className="text-sm sm:text-base">Payroll is ready to run</span>
         </div>

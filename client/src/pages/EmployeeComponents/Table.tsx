@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import { Download, Edit, Trash } from "lucide-react";
-import { generateEmployeePDF } from "./pdfGenerator";
+import usePDFGenerator from "./usePDFGenerator";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
