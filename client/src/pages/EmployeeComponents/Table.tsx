@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
 import { Download, Edit, Trash } from "lucide-react";
-import usePDFGenerator from "./usePDFGenerator";
+import { generateEmployeePDF } from "./pdfGenerator";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -38,9 +38,9 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
     null
   );
 
-  const handleDownloadPDF = (employee: Employee) => {
+  const handleDownloadPDF = async (employee: Employee) => {
     try {
-      generateEmployeePDF(employee);
+      await generateEmployeePDF(employee); // Ensure it completes first
       toast.success("Employee PDF downloaded successfully", {
         description: `PDF for ${employee.firstName} ${employee.lastName} has been generated.`,
       });

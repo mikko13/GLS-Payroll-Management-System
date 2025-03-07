@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import {
   FileText,
@@ -10,8 +9,9 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast, Toaster } from "sonner";
-import usePDFGenerator from "./usePDFGenerator";
+import { toast } from "sonner"; // Remove the Toaster import
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Employee {
   id: string;
@@ -64,7 +64,6 @@ const EmployeeActions = ({
   });
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
-  const { generatePDF } = usePDFGenerator();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -155,8 +154,160 @@ const EmployeeActions = ({
     setFilterDropdownOpen(false);
   };
 
-  const handleGeneratePDF = () => {
-    generatePDF(displayedEmployees);
+  const generatePDF = () => {
+    try {
+      const doc = new jsPDF("landscape");
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      const internalDoc = doc.internal as any;
+
+      doc.setFillColor(51, 102, 204);
+      doc.rect(0, 0, pageWidth, 25, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.text("Century Park Hotel GLS Staff Data Based", 14, 15);
+
+      const today = new Date();
+      const dateStr = today.toLocaleDateString();
+      doc.setFontSize(10);
+      doc.text(`As of: ${dateStr}`, pageWidth - 14, 10, { align: "right" });
+
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(10);
+      doc.text("GLS Manpower Services", 14, 35);
+      doc.text(
+        "Suite 19 G/F Midland Plaza, M. Adriatico Street, Ermita, City of Manila 1000 Metro Manila",
+        14,
+        40
+      );
+      doc.text("gls_manpowerservices@yahoo.com | +63 (2) 8 526 5813", 14, 45);
+      doc.setDrawColor(220, 220, 220);
+      doc.setFillColor(245, 245, 250);
+      doc.roundedRect(pageWidth - 80, 30, 70, 20, 3, 3, "FD");
+      doc.setTextColor(50, 50, 50);
+      doc.setFontSize(11);
+      doc.text("Total Employees:", pageWidth - 75, 38);
+      doc.setFont("helvetica", "bold");
+      doc.text(`${displayedEmployees.length}`, pageWidth - 30, 38);
+
+      const columns = [
+        { header: "Last Name", dataKey: "lastName" },
+        { header: "First Name", dataKey: "firstName" },
+        { header: "Middle Name", dataKey: "middleName" },
+        { header: "Gender", dataKey: "gender" },
+        { header: "Position", dataKey: "position" },
+        { header: "Department", dataKey: "department" },
+        { header: "Date Started", dataKey: "dateStarted" },
+        { header: "Rate", dataKey: "rate" },
+        { header: "Civil Status", dataKey: "civilStatus" },
+        { header: "Birthday", dataKey: "birthDate" },
+        { header: "SSS Number", dataKey: "sss" },
+        { header: "HDMF/PAGIBIG", dataKey: "hdmf" },
+        { header: "Philhealth", dataKey: "philhealth" },
+        { header: "Tin Number", dataKey: "tin" },
+        { header: "Email Address", dataKey: "emailAddress" },
+        { header: "Permanent Address", dataKey: "permanentAddress" },
+        { header: "Contact Number", dataKey: "contactNumber" },
+        { header: "Status", dataKey: "status" },
+        { header: "Remarks", dataKey: "remarks" },
+      ];
+
+      const formatStatus = (status: string) => {
+        return status.charAt(0).toUpperCase() + status.slice(1);
+      };
+
+      autoTable(doc, {
+        startY: 55,
+        head: [columns.map((col) => col.header)],
+        body: displayedEmployees.map((employee) => [
+          employee.lastName,
+          employee.firstName,
+          employee.middleName,
+          employee.gender,
+          employee.position,
+          employee.department,
+          employee.dateStarted,
+          employee.rate,
+          employee.civilStatus || "",
+          employee.birthDate || "",
+          employee.sss || "",
+          employee.hdmf || "",
+          employee.philhealth || "",
+          employee.tin || "",
+          employee.emailAddress || "",
+          employee.permanentAddress || "",
+          employee.contactNumber || "",
+          formatStatus(employee.status),
+          employee.remarks,
+        ]),
+        theme: "grid",
+        headStyles: {
+          fillColor: [73, 137, 222],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+          halign: "center",
+          fontSize: 8,
+        },
+        bodyStyles: {
+          fontSize: 7,
+        },
+        alternateRowStyles: {
+          fillColor: [240, 245, 255],
+        },
+        styles: {
+          lineColor: [220, 220, 220],
+          lineWidth: 0.1,
+          cellPadding: 2,
+          overflow: "linebreak",
+        },
+        columnStyles: {
+          15: {
+            cellWidth: "auto",
+            overflow: "linebreak",
+          },
+          18: {
+            cellWidth: "auto",
+            overflow: "linebreak",
+          },
+        },
+        didDrawPage: () => {
+          const pageCount = internalDoc.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.setTextColor(100, 100, 100);
+          for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.text(
+              `Page ${i} of ${pageCount}`,
+              pageWidth / 2,
+              doc.internal.pageSize.getHeight() - 10,
+              {
+                align: "center",
+              }
+            );
+            doc.text(
+              "CONFIDENTIAL - FOR INTERNAL USE ONLY",
+              14,
+              doc.internal.pageSize.getHeight() - 10
+            );
+          }
+        },
+      });
+
+      doc.save("employee-complete-report.pdf");
+
+      // Only show one toast notification
+      toast.success("PDF Generated", {
+        description: `Employee report for ${displayedEmployees.length} employees has been created.`,
+        duration: 3000,
+      });
+    } catch (error) {
+      toast.error("PDF Generation Failed", {
+        description: "There was an error creating the employee report.",
+        duration: 3000,
+      });
+      console.error("PDF generation error:", error);
+    }
   };
 
   return (
@@ -170,7 +321,7 @@ const EmployeeActions = ({
       <div className="hidden md:flex justify-between items-center">
         <div className="flex space-x-2">
           <button
-            className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md cursor-pointer"
+            className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center shadow-md cursor-pointer transition-all duration-200"
             onClick={() => navigate("/Employees/AddEmployee")}
             style={{
               opacity: isVisible ? 1 : 0,
@@ -183,8 +334,8 @@ const EmployeeActions = ({
             Add Employee
           </button>
           <button
-            onClick={handleGeneratePDF}
-            className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 cursor-pointer"
+            onClick={generatePDF}
+            className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center border border-blue-200 cursor-pointer transition-all duration-200"
             style={{
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? "translateY(0)" : "translateY(5px)",
@@ -230,16 +381,19 @@ const EmployeeActions = ({
           >
             <button
               onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-              className="p-2 rounded-md bg-white hover:bg-blue-50 transition-colors duration-200 border border-blue-200 flex items-center"
+              className="p-2 rounded-md bg-white hover:bg-blue-50 border border-blue-200 flex items-center transition-all duration-200"
             >
               <Filter size={16} className="text-gray-400 mr-1" />
               <ChevronDown size={14} className="text-gray-400" />
             </button>
 
             {filterDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white border border-blue-100 rounded-lg shadow-lg p-4 z-50 animate-fade-in">
+              <div className="absolute right-0 mt-2 w-80 bg-white border border-blue-100 rounded-lg shadow-lg p-4 z-50 animate-fadeIn">
                 <div className="space-y-3">
-                  <div>
+                  <div
+                    className="animate-slideDown"
+                    style={{ animationDelay: "50ms" }}
+                  >
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Department
                     </label>
@@ -247,9 +401,8 @@ const EmployeeActions = ({
                       value={filters.department}
                       onChange={(e) => {
                         setFilters({ ...filters, department: e.target.value });
-                        applyFilters();
                       }}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm transition-all duration-200"
                     >
                       <option value="">All Departments</option>
                       {uniqueDepartments.map((dept) => (
@@ -260,7 +413,10 @@ const EmployeeActions = ({
                     </select>
                   </div>
 
-                  <div>
+                  <div
+                    className="animate-slideDown"
+                    style={{ animationDelay: "100ms" }}
+                  >
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Position
                     </label>
@@ -268,9 +424,8 @@ const EmployeeActions = ({
                       value={filters.position}
                       onChange={(e) => {
                         setFilters({ ...filters, position: e.target.value });
-                        applyFilters();
                       }}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm transition-all duration-200"
                     >
                       <option value="">All Positions</option>
                       {uniquePositions.map((pos) => (
@@ -281,7 +436,10 @@ const EmployeeActions = ({
                     </select>
                   </div>
 
-                  <div>
+                  <div
+                    className="animate-slideDown"
+                    style={{ animationDelay: "150ms" }}
+                  >
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Status
                     </label>
@@ -289,9 +447,8 @@ const EmployeeActions = ({
                       value={filters.status}
                       onChange={(e) => {
                         setFilters({ ...filters, status: e.target.value });
-                        applyFilters();
                       }}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm transition-all duration-200"
                     >
                       <option value="">All Statuses</option>
                       {uniqueStatuses.map((status) => (
@@ -302,7 +459,10 @@ const EmployeeActions = ({
                     </select>
                   </div>
 
-                  <div>
+                  <div
+                    className="animate-slideDown"
+                    style={{ animationDelay: "200ms" }}
+                  >
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Remarks
                     </label>
@@ -310,9 +470,8 @@ const EmployeeActions = ({
                       value={filters.remarks}
                       onChange={(e) => {
                         setFilters({ ...filters, remarks: e.target.value });
-                        applyFilters();
                       }}
-                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm"
+                      className="w-full px-3 py-2 border border-blue-200 rounded-md text-sm transition-all duration-200"
                     >
                       <option value="">All Remarks</option>
                       {uniqueRemarks.map((remark) => (
@@ -323,16 +482,19 @@ const EmployeeActions = ({
                     </select>
                   </div>
 
-                  <div className="flex justify-between mt-4">
+                  <div
+                    className="flex justify-between mt-4 animate-slideDown"
+                    style={{ animationDelay: "250ms" }}
+                  >
                     <button
                       onClick={resetFilters}
-                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                      className="text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200"
                     >
                       Reset Filters
                     </button>
                     <button
                       onClick={() => setFilterDropdownOpen(false)}
-                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
+                      className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors duration-200"
                     >
                       Apply
                     </button>
@@ -380,30 +542,34 @@ const EmployeeActions = ({
             >
               <button
                 onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                className="p-2 rounded-md bg-white hover:bg-blue-50 transition-colors duration-200 border border-blue-200 flex items-center"
+                className="p-2 rounded-md bg-white hover:bg-blue-50 border border-blue-200 flex items-center transition-all duration-200"
               >
                 <Filter size={16} className="text-gray-400 mr-1" />
                 <ChevronDown size={14} className="text-gray-400" />
               </button>
 
               {filterDropdownOpen && (
-                <div className="fixed inset-0 z-50 flex items-end justify-center">
-                  <div className="bg-white w-full rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up p-4 shadow-lg">
+                <div className="fixed inset-0 z-50 flex items-end justify-center animate-slideUp">
+                  <div className="bg-white w-full rounded-t-2xl max-h-[80vh] overflow-y-auto p-4 shadow-lg">
                     <div className="flex justify-between items-center mb-4">
                       <h2 className="text-lg font-semibold text-gray-800">
                         Filter Employees
                       </h2>
                       <button
                         onClick={() => setFilterDropdownOpen(false)}
-                        className="text-gray-500 hover:text-gray-700"
+                        className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
                       >
                         <X size={24} />
                       </button>
                     </div>
 
                     <div className="space-y-4">
-                      {filterSections.map((section) => (
-                        <div key={section.key}>
+                      {filterSections.map((section, index) => (
+                        <div
+                          key={section.key}
+                          className="animate-slideDown"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
                           <button
                             onClick={() =>
                               setActiveFilterSection(
@@ -412,14 +578,14 @@ const EmployeeActions = ({
                                   : section.key
                               )
                             }
-                            className="w-full flex justify-between items-center px-3 py-2 bg-blue-50 rounded-md"
+                            className="w-full flex justify-between items-center px-3 py-2 bg-blue-50 rounded-md transition-all duration-200"
                           >
                             <span className="text-sm font-medium">
                               {section.label}
                             </span>
                             <ChevronDown
                               size={16}
-                              className={`transform transition-transform ${
+                              className={`transform transition-transform duration-200 ${
                                 activeFilterSection === section.key
                                   ? "rotate-180"
                                   : ""
@@ -428,11 +594,14 @@ const EmployeeActions = ({
                           </button>
 
                           {activeFilterSection === section.key && (
-                            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
-                              {section.options.map((option) => (
+                            <div className="mt-2 space-y-2 max-h-48 overflow-y-auto animate-fadeIn">
+                              {section.options.map((option, optIndex) => (
                                 <label
                                   key={option}
-                                  className="flex items-center space-x-2 px-3 py-2 hover:bg-blue-50 rounded-md"
+                                  className="flex items-center space-x-2 px-3 py-2 hover:bg-blue-50 rounded-md transition-colors duration-200 animate-slideDown"
+                                  style={{
+                                    animationDelay: `${optIndex * 30}ms`,
+                                  }}
                                 >
                                   <input
                                     type="radio"
@@ -465,19 +634,21 @@ const EmployeeActions = ({
                       ))}
                     </div>
 
-                    <div className="flex justify-between mt-6 space-x-4">
+                    <div
+                      className="flex justify-between mt-6 space-x-4 animate-slideDown"
+                      style={{ animationDelay: "250ms" }}
+                    >
                       <button
                         onClick={resetFilters}
-                        className="flex-1 text-sm text-gray-600 bg-gray-100 py-3 rounded-md hover:bg-gray-200 transition-colors"
+                        className="flex-1 text-sm text-gray-600 bg-gray-100 py-3 rounded-md hover:bg-gray-200 transition-colors duration-200"
                       >
                         Reset Filters
                       </button>
                       <button
                         onClick={() => {
-                          applyFilters();
                           setFilterDropdownOpen(false);
                         }}
-                        className="flex-1 text-sm bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors"
+                        className="flex-1 text-sm bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors duration-200"
                       >
                         Apply Filters
                       </button>
@@ -502,7 +673,7 @@ const EmployeeActions = ({
         </div>
 
         {mobileActionsOpen && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-2 space-y-2 overflow-hidden">
             <div
               style={{
                 animation: "slideDown 300ms ease forwards",
@@ -511,7 +682,7 @@ const EmployeeActions = ({
               }}
             >
               <button
-                className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md w-full"
+                className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center shadow-md w-full transition-all duration-200"
                 onClick={() => navigate("/Employees/AddEmployee")}
               >
                 <Users size={16} className="mr-2" />
@@ -527,8 +698,8 @@ const EmployeeActions = ({
               }}
             >
               <button
-                onClick={handleGeneratePDF}
-                className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 w-full"
+                onClick={generatePDF}
+                className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center border border-blue-200 w-full transition-colors duration-200"
               >
                 <FileText size={16} className="mr-2" />
                 Generate PDF
@@ -537,7 +708,54 @@ const EmployeeActions = ({
           </div>
         )}
       </div>
-      <Toaster position="bottom-left" richColors />
+
+      {/* Remove the Toaster component from here */}
+      {/* <Toaster position="bottom-left" richColors /> */}
+
+      <style jsx>{`
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 300ms ease-out forwards;
+        }
+
+        .animate-slideDown {
+          animation: slideDown 300ms ease-out forwards;
+        }
+
+        .animate-slideUp {
+          animation: slideUp 300ms ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

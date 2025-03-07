@@ -8,6 +8,7 @@ import SettingsPage from "./pages/SettingsComponents/SettingsPage";
 import CreatePayrollForm from "./pages/PayrollComponents/CreatePayrollComponents/CreatePayrollForm";
 import CreateEmployeeForm from "./pages/EmployeeComponents/CreateEmployeeComponents/CreateEmployeeForm";
 import UpdateEmployeeForm from "./pages/EmployeeComponents/UpdateEmployeeComponents/UpdateEmployeeForm";
+import UpdatePayrollForm from "./pages/PayrollComponents/UpdatePayrollComponents/UpdatePayrollForm";
 
 function App() {
   return (
@@ -20,9 +21,16 @@ function App() {
         <Route path="/Settings" element={<SettingsPage />} />
 
         <Route path="/Payroll/CreatePayroll" element={<CreatePayrollForm />} />
+        <Route
+          path="/Payroll/UpdatePayroll/:payrollId"
+          element={<UpdatePayrollForm />}
+        />
 
         <Route path="/Employees/AddEmployee" element={<CreateEmployeeForm />} />
-        <Route path="/Employees/UpdateEmployee/:id" element={<UpdateEmployeeForm />} />
+        <Route
+          path="/Employees/UpdateEmployee/:id"
+          element={<UpdateEmployeeForm />}
+        />
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
