@@ -8,7 +8,7 @@ import ActionsComponent from "./Actions";
 import PayrollTable from "./Table";
 import { CheckCircle, Clock } from "lucide-react";
 
-const PayrollDashboardComponent = () => {
+const PayrollDashboard: React.FC = () => {
   const [employees, setEmployees] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -17,6 +17,7 @@ const PayrollDashboardComponent = () => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("Payroll");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   useEffect(() => {
     const fetchPayrolls = async () => {
@@ -24,6 +25,10 @@ const PayrollDashboardComponent = () => {
         const response = await axios.get("http://localhost:5000/api/payrolls");
         setEmployees(response.data);
         setLoading(false);
+
+        setTimeout(() => {
+          setIsPageLoaded(true);
+        }, 100);
       } catch (err) {
         console.error("Error fetching payrolls:", err);
         setError(err);
@@ -32,6 +37,25 @@ const PayrollDashboardComponent = () => {
     };
 
     fetchPayrolls();
+
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
   const handleCheckboxChange = (id) => {
@@ -66,7 +90,6 @@ const PayrollDashboardComponent = () => {
     }
   };
 
-  // Compute totals
   const totalNetPay = employees.reduce(
     (sum, emp) => sum + (emp.netPay || 0),
     0
@@ -75,16 +98,29 @@ const PayrollDashboardComponent = () => {
     (sum, emp) => sum + (emp.totalRegularWage || 0),
     0
   );
-  const totalOvertime = employees.reduce(
-    (sum, emp) => sum + (emp.overtime || 0),
-    0
-  );
+  const totalProcessedPayroll = employees
+    .filter((emp) => emp.status === "Processed")
+    .reduce((sum, emp) => sum + (emp.netPay || 0), 0);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error loading payrolls</div>;
+  if (loading)
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-blue-50">
+        <div className="text-blue-800 text-lg animate-pulse">Loading...</div>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-red-50">
+        <div className="text-red-800 text-lg">Error loading payrolls</div>
+      </div>
+    );
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
+    <div
+      className="flex h-screen w-screen overflow-hidden transition-opacity duration-500"
+      style={{ opacity: isPageLoaded ? 1 : 0 }}
+    >
       <Sidebar
         sidebarOpen={sidebarOpen}
         activeSidebarItem={activeSidebarItem}
@@ -103,7 +139,7 @@ const PayrollDashboardComponent = () => {
           <Metrics
             totalNetPay={totalNetPay}
             totalRegularWage={totalRegularWage}
-            totalOvertime={totalOvertime}
+            totalProcessedPayroll={totalProcessedPayroll}
           />
           <ActionsComponent employees={employees} />
           <PayrollTable
@@ -122,4 +158,4 @@ const PayrollDashboardComponent = () => {
   );
 };
 
-export default PayrollDashboardComponent;
+export default PayrollDashboard;

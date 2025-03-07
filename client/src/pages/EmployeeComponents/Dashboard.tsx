@@ -18,6 +18,7 @@ const EmployeeDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSidebarItem, setActiveSidebarItem] = useState("Employees");
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   useEffect(() => {
     const fetchEmployees = async () => {
@@ -31,6 +32,11 @@ const EmployeeDashboard = () => {
         setEmployees(employeesWithId);
         setFilteredEmployees(employeesWithId);
         setError(null);
+
+        // Add delay before showing the page with animation
+        setTimeout(() => {
+          setIsPageLoaded(true);
+        }, 100);
       } catch (err) {
         console.error("Error fetching employees:", err);
         setError("Failed to load employees. Please try again later.");
@@ -40,6 +46,26 @@ const EmployeeDashboard = () => {
     };
 
     fetchEmployees();
+
+    // Add the slide down animation style
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
+    };
   }, []);
 
   const displayedEmployees = filteredEmployees.slice(
@@ -55,8 +81,18 @@ const EmployeeDashboard = () => {
     (emp) => emp.status === "Regular"
   ).length;
 
+  if (loading)
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-blue-50">
+        <div className="text-blue-800 text-lg animate-pulse">Loading...</div>
+      </div>
+    );
+
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
+    <div
+      className="flex h-screen w-screen overflow-hidden transition-opacity duration-500"
+      style={{ opacity: isPageLoaded ? 1 : 0 }}
+    >
       <Sidebar
         sidebarOpen={sidebarOpen}
         activeSidebarItem={activeSidebarItem}
@@ -89,22 +125,16 @@ const EmployeeDashboard = () => {
             setFilteredEmployees={setFilteredEmployees}
           />
 
-          {loading ? (
-            <div className="flex justify-center items-center p-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <EmployeeTable
-              displayedEmployees={displayedEmployees}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              setItemsPerPage={setItemsPerPage}
-              filteredEmployees={filteredEmployees}
-              employees={employees}
-              setEmployees={setEmployees}
-            />
-          )}
+          <EmployeeTable
+            displayedEmployees={displayedEmployees}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+            filteredEmployees={filteredEmployees}
+            employees={employees}
+            setEmployees={setEmployees}
+          />
         </div>
       </div>
     </div>

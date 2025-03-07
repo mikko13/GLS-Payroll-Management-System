@@ -166,13 +166,13 @@ const PayrollTable: React.FC<EmployeeTableProps> = ({
                   </td>
                   <td className="p-3 sticky right-0 bg-white z-10">
                     <div className="flex items-center space-x-2">
-                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200">
+                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer">
                         <Eye size={16} />
                       </button>
-                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200">
+                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer">
                         <Edit size={16} />
                       </button>
-                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200">
+                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer">
                         <Trash size={16} />
                       </button>
                     </div>
@@ -182,6 +182,7 @@ const PayrollTable: React.FC<EmployeeTableProps> = ({
             </tbody>
           </table>
         </div>
+
         <PaginationComponent
           itemsPerPage={itemsPerPage}
           setItemsPerPage={setItemsPerPage}
