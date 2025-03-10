@@ -9,7 +9,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner"; // Remove the Toaster import
+import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -296,7 +296,6 @@ const EmployeeActions = ({
 
       doc.save("employee-complete-report.pdf");
 
-      // Only show one toast notification
       toast.success("PDF Generated", {
         description: `Employee report for ${displayedEmployees.length} employees has been created.`,
         duration: 3000,
@@ -708,9 +707,6 @@ const EmployeeActions = ({
           </div>
         )}
       </div>
-
-      {/* Remove the Toaster component from here */}
-      {/* <Toaster position="bottom-left" richColors /> */}
 
       <style jsx>{`
         @keyframes slideDown {

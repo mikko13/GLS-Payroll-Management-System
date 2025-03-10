@@ -1,6 +1,6 @@
 import { JSX } from "react/jsx-dev-runtime";
 
-export interface Employee {
+export interface Payroll {
   id: string;
   name: string;
   checked: boolean;
@@ -22,7 +22,7 @@ export interface Employee {
 }
 
 export interface PayrollTableProps {
-  employees: Employee[];
+  payrolls: Payroll[];
   handleCheckboxChange: (id: string) => void;
   getStatusColor: (status: string) => string;
   getStatusIcon: (status: string) => JSX.Element;

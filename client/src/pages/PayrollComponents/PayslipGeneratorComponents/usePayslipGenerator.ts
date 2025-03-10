@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SetStateAction } from "react";
 import * as XLSX from "xlsx-js-style";
 
-const usePayslipGenerator = (employees, setIsGenerating) => {
+const usePayslipGenerator = (payrolls: any[], setIsGenerating: { (value: SetStateAction<boolean>): void; (arg0: boolean): void; }) => {
   const generateAllPayslips = () => {
-    if (!employees || employees.length === 0) {
-      alert("No employees found to generate payslips.");
+    if (!payrolls || payrolls.length === 0) {
+      alert("No payrolls found to generate payslips.");
       return;
     }
 
@@ -15,19 +17,19 @@ const usePayslipGenerator = (employees, setIsGenerating) => {
       const formattedDate = formatDate(today);
 
       let currentRow = 0;
-      const merges = [];
+      const merges: { s: { r: any; c: number; }; e: { r: any; c: number; }; }[] | undefined = [];
 
-      employees.forEach((employee) => {
-        const payslipData = createPayslipData(employee, formattedDate);
+      payrolls.forEach((payroll: any) => {
+        const payslipData = createPayslipData(payroll, formattedDate);
 
-        const employeeMerges = calculateMerges(currentRow);
-        merges.push(...employeeMerges);
+        const payrollMerges = calculateMerges(currentRow);
+        merges.push(...payrollMerges);
 
         XLSX.utils.sheet_add_aoa(worksheet, payslipData, {
           origin: `A${currentRow + 1}`,
         });
 
-        applyStylesForEmployee(worksheet, currentRow, employee, formattedDate);
+        applyStylesForPayroll(worksheet, currentRow, payroll, formattedDate);
 
         currentRow += payslipData.length;
       });
@@ -75,7 +77,7 @@ const getCurrentDate = () => {
   return new Date();
 };
 
-const formatDate = (date) => {
+const formatDate = (date: Date) => {
   return `${(date.getMonth() + 1).toString().padStart(2, "0")} ${date
     .getDate()
     .toString()
@@ -84,13 +86,13 @@ const formatDate = (date) => {
     .padStart(2, "0")}, ${date.getFullYear()}`;
 };
 
-const formatDateForFilename = (date) => {
+const formatDateForFilename = (date: Date) => {
   return `${date.getFullYear()}-${(date.getMonth() + 1)
     .toString()
     .padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
 };
 
-const formatCurrency = (value) => {
+const formatCurrency = (value: number) => {
   return value
     ? `${value.toLocaleString("en-US", {
         minimumFractionDigits: 2,
@@ -99,11 +101,11 @@ const formatCurrency = (value) => {
     : "";
 };
 
-const createPayslipData = (employee, formattedDate) => {
-  const calculatedRegularHoliday = employee.regularHoliday * 161.25;
-  const calculatedSpecialHoliday = employee.specialHoliday * 104.81;
-  const calculatedRegularNightDifferential = employee.regularNightDifferential * 8.06;
-  const calculatedOvertime = employee.overtime * 100.78;
+const createPayslipData = (payroll: { regularHoliday: number; specialHoliday: number; regularNightDifferential: number; overtime: number; lastName: string; firstName: string; name: string; hourlyRate: any; numberOfRegularHours: any; totalRegularWage: any; hdmfLoans: any; sss: any; phic: any; hdmf: any; totalAmount: any; netPay: any; }, formattedDate: string) => {
+  const calculatedRegularHoliday = payroll.regularHoliday * 161.25;
+  const calculatedSpecialHoliday = payroll.specialHoliday * 104.81;
+  const calculatedRegularNightDifferential = payroll.regularNightDifferential * 8.06;
+  const calculatedOvertime = payroll.overtime * 100.78;
   return [
     [
       "G.L.S. MANPOWER SERVICES",
@@ -119,8 +121,8 @@ const createPayslipData = (employee, formattedDate) => {
       "",
     ],
     [
-      `EMPLOYEE NAME: ${employee.lastName?.toUpperCase() || ""}, ${
-        employee.firstName?.toUpperCase() || employee.name?.toUpperCase() || ""
+      `PAYROLL NAME: ${payroll.lastName?.toUpperCase() || ""}, ${
+        payroll.firstName?.toUpperCase() || payroll.name?.toUpperCase() || ""
       }`,
       "",
       "",
@@ -137,10 +139,10 @@ const createPayslipData = (employee, formattedDate) => {
     [
       "REGULAR HOUR",
       "",
-      employee.hourlyRate,
+      payroll.hourlyRate,
       "",
-      employee.numberOfRegularHours,
-      formatCurrency(employee.totalRegularWage),
+      payroll.numberOfRegularHours,
+      formatCurrency(payroll.totalRegularWage),
       "",
       "BREAKAGES",
       "",
@@ -158,7 +160,7 @@ const createPayslipData = (employee, formattedDate) => {
       "HDMF LOAN",
       "",
       "",
-      formatCurrency(employee.hdmfLoans),
+      formatCurrency(payroll.hdmfLoans),
     ],
     [
       "SPECIAL HOLIDAY",
@@ -171,7 +173,7 @@ const createPayslipData = (employee, formattedDate) => {
       "SSS ",
       "",
       "",
-      formatCurrency(employee.sss),
+      formatCurrency(payroll.sss),
     ],
     [
       "NIGHT DIFF",
@@ -184,20 +186,20 @@ const createPayslipData = (employee, formattedDate) => {
       "PHIC",
       "",
       "",
-      formatCurrency(employee.phic),
+      formatCurrency(payroll.phic),
     ],
     [
       "OT",
       "",
+      "100.78",
+      "",
+      "",
       formatCurrency(calculatedOvertime),
-      "",
-      "",
-      "",
       "",
       "HDMF",
       "",
       "",
-      formatCurrency(employee.hdmf),
+      formatCurrency(payroll.hdmf),
     ],
     [
       "GROSS PAY",
@@ -205,18 +207,18 @@ const createPayslipData = (employee, formattedDate) => {
       "",
       "",
       "",
-      formatCurrency(employee.totalAmount),
+      formatCurrency(payroll.totalAmount),
       "",
       "NET PAY",
       "",
       "",
-      formatCurrency(employee.netPay),
+      formatCurrency(payroll.netPay),
     ],
     ["", "", "", "", "", "", "", "", "", "", ""],
   ];
 };
 
-const calculateMerges = (currentRow) => {
+const calculateMerges = (currentRow: number) => {
   return [
     { s: { r: currentRow, c: 0 }, e: { r: currentRow, c: 5 } },
     { s: { r: currentRow + 1, c: 0 }, e: { r: currentRow + 1, c: 5 } },
@@ -231,11 +233,11 @@ const calculateMerges = (currentRow) => {
   ];
 };
 
-const applyStylesForEmployee = (
-  worksheet,
-  currentRow,
-  employee,
-  formattedDate
+const applyStylesForPayroll = (
+  worksheet: XLSX.WorkSheet,
+  currentRow: number,
+  payroll: any,
+  formattedDate: string
 ) => {
   applyCellStyle(worksheet, currentRow, 0, "G.L.S. MANPOWER SERVICES", {
     font: {
@@ -258,20 +260,22 @@ const applyStylesForEmployee = (
     },
   });
 
-  applyNumericStyles(worksheet, currentRow, employee);
+  applyNumericStyles(worksheet, currentRow, payroll);
 
   applyBorderStyles(worksheet, currentRow);
 };
 
-const applyCellStyle = (worksheet, row, col, value, style) => {
+const applyCellStyle = (worksheet: { [x: string]: { s: any; }; }, row: any, col: number, value: string, style: { font: { name: string; bold: boolean; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; underline: boolean; }; alignment: { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; }; border?: { top: { style: string; color: { rgb: string; }; }; left: { style: string; color: { rgb: string; }; }; } | { top: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; bottom: { style: string; color: { rgb: string; }; }; }; }) => {
   const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
   if (!worksheet[cellAddress]) worksheet[cellAddress] = { v: value };
   worksheet[cellAddress].s = style;
 };
 
-const applyNumericStyles = (worksheet, currentRow, employee) => {
-  if (employee.hourlyRate) {
-    applyCellStyle(worksheet, currentRow + 3, 2, employee.hourlyRate, {
+const applyNumericStyles = (worksheet: { [x: string]: {
+  v: { s: { font: { name: string; sz: number; }; alignment: { vertical: string; horizontal: string; }; }; }; s: { font: { name: string; sz: number; }; alignment: { vertical: string; horizontal: string; }; }; 
+}; }, currentRow: number, payroll: { hourlyRate: any; numberOfRegularHours: any; sss: any; hdmfLoans: any; phic: any; hdmf: any; netPay: any; }) => {
+  if (payroll.hourlyRate) {
+    applyCellStyle(worksheet, currentRow + 3, 2, payroll.hourlyRate, {
       font: { name: "Abadi", sz: 9 },
       alignment: { vertical: "center", horizontal: "right" },
     });
@@ -285,12 +289,12 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     };
   }
 
-  if (employee.numberOfRegularHours) {
+  if (payroll.numberOfRegularHours) {
     applyCellStyle(
       worksheet,
       currentRow + 3,
       4,
-      employee.numberOfRegularHours,
+      payroll.numberOfRegularHours,
       {
         font: { name: "Abadi", sz: 9 },
         alignment: { vertical: "center", horizontal: "right" },
@@ -341,6 +345,14 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     };
   }
 
+  const overtimeAmtCell = XLSX.utils.encode_cell({ r: currentRow + 7, c: 5 });
+  if (worksheet[overtimeAmtCell] && worksheet[overtimeAmtCell].v) {
+    worksheet[overtimeAmtCell].s = {
+      font: { name: "Abadi", sz: 9 },
+      alignment: { vertical: "center", horizontal: "right" },
+    };
+  }
+
   const overtimeCell = XLSX.utils.encode_cell({ r: currentRow + 7, c: 2 });
   if (worksheet[overtimeCell] && worksheet[nightDiffRateCell].v) {
     worksheet[overtimeCell].s = {
@@ -357,7 +369,7 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     };
   }
 
-  applyCellStyle(worksheet, currentRow + 5, 10, employee.sss, {
+  applyCellStyle(worksheet, currentRow + 5, 10, payroll.sss, {
     font: { name: "Abadi", sz: 9 },
     alignment: { vertical: "center", horizontal: "right" },
     border: {
@@ -365,7 +377,7 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     },
   });
 
-  applyCellStyle(worksheet, currentRow + 4, 10, employee.hdmfLoans, {
+  applyCellStyle(worksheet, currentRow + 4, 10, payroll.hdmfLoans, {
     font: { name: "Abadi", sz: 9 },
     alignment: { vertical: "center", horizontal: "right" },
     border: {
@@ -373,7 +385,7 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     },
   });
 
-  applyCellStyle(worksheet, currentRow + 6, 10, employee.phic, {
+  applyCellStyle(worksheet, currentRow + 6, 10, payroll.phic, {
     font: { name: "Abadi", sz: 9 },
     alignment: { vertical: "center", horizontal: "right" },
     border: {
@@ -385,7 +397,7 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     worksheet,
     currentRow + 7,
     10,
-    formatCurrency(employee.hdmf),
+    formatCurrency(payroll.hdmf),
     {
       font: { name: "Abadi", sz: 9 },
       alignment: { vertical: "center", horizontal: "right" },
@@ -399,7 +411,7 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
     worksheet,
     currentRow + 8,
     10,
-    formatCurrency(employee.netPay),
+    formatCurrency(payroll.netPay),
     {
       font: {
         name: "Abadi",
@@ -415,7 +427,7 @@ const applyNumericStyles = (worksheet, currentRow, employee) => {
   );
 };
 
-const applyBorderStyles = (worksheet, currentRow) => {
+const applyBorderStyles = (worksheet: { [x: string]: { s: any; }; }, currentRow: number) => {
   const payslipRowCount = 9;
   const payslipColCount = 11; 
 

@@ -40,7 +40,7 @@ const UpdateEmployeeForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<Employee>({
@@ -91,21 +91,116 @@ const UpdateEmployeeForm: React.FC = () => {
     }
   }, [id, location.state]);
 
+  interface ValidationErrors {
+    [key: string]: string;
+  }
+
+  const validateForm = (): ValidationErrors => {
+    const newErrors: ValidationErrors = {};
+
+    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
+    if (!formData.firstName.trim())
+      newErrors.firstName = "First name is required";
+    if (!formData.birthDate) newErrors.birthDate = "Birth date is required";
+
+    if (formData.birthDate) {
+      const today = new Date();
+      const birthDate = new Date(formData.birthDate);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+
+      if (age < 18) {
+        newErrors.birthDate = "Employee must be at least 18 years old";
+      }
+    }
+
+    if (!formData.position.trim()) newErrors.position = "Position is required";
+    if (!formData.department.trim())
+      newErrors.department = "Department is required";
+    if (!formData.dateStarted)
+      newErrors.dateStarted = "Date started is required";
+
+    if (!formData.rate.trim()) {
+      newErrors.rate = "Rate is required";
+    } else if (isNaN(Number(formData.rate)) || Number(formData.rate) <= 0) {
+      newErrors.rate = "Rate must be a valid positive number";
+    }
+
+    if (!formData.emailAddress.trim()) {
+      newErrors.emailAddress = "Email address is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.emailAddress.trim())) {
+        newErrors.emailAddress = "Please enter a valid email address";
+      }
+    }
+
+    if (!formData.contactNumber.trim()) {
+      newErrors.contactNumber = "Contact number is required";
+    } else {
+      const phoneRegex = /^\+?[0-9]{10,15}$/;
+      if (!phoneRegex.test(formData.contactNumber.replace(/[\s-]/g, ""))) {
+        newErrors.contactNumber = "Please enter a valid contact number";
+      }
+    }
+
+    if (!formData.permanentAddress.trim()) {
+      newErrors.permanentAddress = "Permanent address is required";
+    } else if (formData.permanentAddress.trim().length < 10) {
+      newErrors.permanentAddress = "Please enter a complete address";
+    }
+
+    return newErrors;
+  };
+
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: "" });
+    }
+
+    if (name === "rate") {
+      const regex = /^[0-9]*\.?[0-9]*$/;
+      if (value === "" || regex.test(value)) {
+        setFormData({ ...formData, [name]: value });
+      }
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationErrors = validateForm();
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.focus();
+      }
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
+      // Change this for update (PUT request instead of POST)
       const response = await axios.put(
         `http://localhost:5000/api/employees/${id}`,
         formData
@@ -116,13 +211,18 @@ const UpdateEmployeeForm: React.FC = () => {
         duration: 3000,
       });
 
+      if (onsubmit) {
+        onsubmit(formData);
+      }
+
       setTimeout(() => {
-        navigate("/employees", {
+        navigate("/Employees", {
           state: { message: "Employee updated successfully!", type: "success" },
         });
       }, 3000);
     } catch (err) {
       console.error("Error updating employee:", err);
+
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.message || "Failed to update employee");
         toast.error("Failed to update employee", {
@@ -135,10 +235,11 @@ const UpdateEmployeeForm: React.FC = () => {
           description: "An unexpected error occurred. Please try again.",
         });
       }
+    } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   const getRemarksColor = (remarks: string) => {
     switch (remarks) {
       case "Active":
@@ -209,9 +310,14 @@ const UpdateEmployeeForm: React.FC = () => {
                   required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.lastName ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter last name"
                 />
+                {errors.lastName && (
+                  <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -228,9 +334,16 @@ const UpdateEmployeeForm: React.FC = () => {
                   required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.firstName ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter first name"
                 />
+                {errors.firstName && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.firstName}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -263,12 +376,32 @@ const UpdateEmployeeForm: React.FC = () => {
                   name="gender"
                   required
                   value={formData.gender}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const newGender = e.target.value;
+                    handleChange(e);
+
+                    if (
+                      formData.position === "Waiter" ||
+                      formData.position === "Waitress"
+                    ) {
+                      const updatedPosition =
+                        newGender === "Female" ? "Waitress" : "Waiter";
+
+                      const positionEvent = {
+                        target: {
+                          name: "position",
+                          value: updatedPosition,
+                        },
+                      };
+
+                      handleChange(positionEvent);
+                    }
+                  }}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
-                  <option value="other">Other</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
 
@@ -285,9 +418,16 @@ const UpdateEmployeeForm: React.FC = () => {
                   name="birthDate"
                   required
                   value={formData.birthDate}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.birthDate ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
+                  max={new Date().toISOString().split("T")[0]}
                 />
+                {errors.birthDate && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.birthDate}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -332,18 +472,30 @@ const UpdateEmployeeForm: React.FC = () => {
                 >
                   Position*
                 </label>
-                <input
-                  type="text"
+                <select
                   id="position"
                   name="position"
                   required
                   value={formData.position}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                  placeholder="Enter position"
-                />
+                  className={`w-full rounded-md border ${
+                    errors.position ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
+                >
+                  <option value="">Select Position</option>
+                  {formData.gender === "Female" ? (
+                    <option value="Waitress">Waitress</option>
+                  ) : (
+                    <option value="Waiter">Waiter</option>
+                  )}
+                  <option value="Staff Supervisor">Staff Supervisor</option>
+                  <option value="Coordinator">Coordinator</option>
+                  <option value="Kitchen Helper">Kitchen Helper</option>
+                </select>
+                {errors.position && (
+                  <p className="text-sm text-red-600 mt-1">{errors.position}</p>
+                )}
               </div>
-
               <div className="space-y-2">
                 <label
                   htmlFor="department"
@@ -351,16 +503,25 @@ const UpdateEmployeeForm: React.FC = () => {
                 >
                   Department*
                 </label>
-                <input
-                  type="text"
+                <select
                   id="department"
                   name="department"
                   required
                   value={formData.department}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                  placeholder="Enter department"
-                />
+                  className={`w-full rounded-md border ${
+                    errors.department ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
+                >
+                  <option value="">Select Department</option>
+                  <option value="F&B">Food & Beverages</option>
+                  <option value="Kitchen">Kitchen</option>
+                </select>
+                {errors.department && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.department}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -377,8 +538,16 @@ const UpdateEmployeeForm: React.FC = () => {
                   required
                   value={formData.dateStarted}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.dateStarted ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
+                  max={new Date().toISOString().split("T")[0]}
                 />
+                {errors.dateStarted && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.dateStarted}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -395,9 +564,14 @@ const UpdateEmployeeForm: React.FC = () => {
                   required
                   value={formData.rate}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.rate ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter hourly rate"
                 />
+                {errors.rate && (
+                  <p className="text-sm text-red-600 mt-1">{errors.rate}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -551,9 +725,16 @@ const UpdateEmployeeForm: React.FC = () => {
                   required
                   value={formData.emailAddress}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.emailAddress ? "border-red-500" : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter email address"
                 />
+                {errors.emailAddress && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.emailAddress}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -563,16 +744,30 @@ const UpdateEmployeeForm: React.FC = () => {
                 >
                   Contact Number*
                 </label>
-                <input
-                  type="text"
-                  id="contactNumber"
-                  name="contactNumber"
-                  required
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                  placeholder="Enter contact number"
-                />
+                <div className="flex rounded-md">
+                  <span className="inline-flex items-center px-3 py-2 text-sm text-gray-500 bg-gray-100 border border-r-0 border-blue-200 rounded-l-md">
+                    +63
+                  </span>
+                  <input
+                    type="text"
+                    id="contactNumber"
+                    name="contactNumber"
+                    required
+                    value={formData.contactNumber}
+                    onChange={handleChange}
+                    className={`w-full rounded-r-md border ${
+                      errors.contactNumber
+                        ? "border-red-500"
+                        : "border-blue-200"
+                    } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
+                    placeholder="9XX XXX XXXX"
+                  />
+                </div>
+                {errors.contactNumber && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.contactNumber}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2 md:col-span-2">
@@ -589,9 +784,18 @@ const UpdateEmployeeForm: React.FC = () => {
                   required
                   value={formData.permanentAddress}
                   onChange={handleChange}
-                  className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                  className={`w-full rounded-md border ${
+                    errors.permanentAddress
+                      ? "border-red-500"
+                      : "border-blue-200"
+                  } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                   placeholder="Enter permanent address"
                 />
+                {errors.permanentAddress && (
+                  <p className="text-sm text-red-600 mt-1">
+                    {errors.permanentAddress}
+                  </p>
+                )}
               </div>
             </div>
           </div>

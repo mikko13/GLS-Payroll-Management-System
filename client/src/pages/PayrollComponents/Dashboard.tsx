@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../SidebarComponents/Sidebar";
@@ -7,9 +8,10 @@ import Metrics from "./Metrics";
 import ActionsComponent from "./Actions";
 import PayrollTable from "./Table";
 import { CheckCircle, Clock } from "lucide-react";
+import { Toaster } from "sonner";
 
 const PayrollDashboard: React.FC = () => {
-  const [employees, setEmployees] = useState([]);
+  const [payrolls, setPayrolls] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [payPeriod, setPayPeriod] = useState("February 1-15, 2025");
@@ -18,12 +20,13 @@ const PayrollDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [filteredPayrolls, setFilteredPayrolls] = useState([]);
 
   useEffect(() => {
     const fetchPayrolls = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/payrolls");
-        setEmployees(response.data);
+        setPayrolls(response.data);
         setLoading(false);
 
         setTimeout(() => {
@@ -58,17 +61,20 @@ const PayrollDashboard: React.FC = () => {
     };
   }, []);
 
-  const handleCheckboxChange = (id) => {
-    setEmployees(
-      employees.map((employee) =>
-        employee._id === id
-          ? { ...employee, checked: !employee.checked }
-          : employee
+  const handleCheckboxChange = (id: any) => {
+    setPayrolls(
+      payrolls.map((payroll) =>
+        payroll._id === id ? { ...payroll, checked: !payroll.checked } : payroll
       )
     );
   };
 
-  const getStatusColor = (status) => {
+  const displayedPayrolls = filteredPayrolls.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const getStatusColor = (status: any) => {
     switch (status) {
       case "Processed":
         return "bg-emerald-100 text-emerald-600";
@@ -79,7 +85,7 @@ const PayrollDashboard: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: any) => {
     switch (status) {
       case "Processed":
         return <CheckCircle size={14} className="mr-1" />;
@@ -90,15 +96,12 @@ const PayrollDashboard: React.FC = () => {
     }
   };
 
-  const totalNetPay = employees.reduce(
-    (sum, emp) => sum + (emp.netPay || 0),
-    0
-  );
-  const totalRegularWage = employees.reduce(
+  const totalNetPay = payrolls.reduce((sum, emp) => sum + (emp.netPay || 0), 0);
+  const totalRegularWage = payrolls.reduce(
     (sum, emp) => sum + (emp.totalRegularWage || 0),
     0
   );
-  const totalProcessedPayroll = employees
+  const totalProcessedPayroll = payrolls
     .filter((emp) => emp.status === "Processed")
     .reduce((sum, emp) => sum + (emp.netPay || 0), 0);
 
@@ -107,11 +110,9 @@ const PayrollDashboard: React.FC = () => {
       <div className="flex h-screen w-screen overflow-hidden bg-gray-50">
         <div className="w-64 h-full bg-blue-100 opacity-70 animate-pulse" />
         <div className="flex-1 flex flex-col">
-          {/* Header skeleton */}
           <div className="h-16 bg-white shadow-sm opacity-70 animate-pulse" />
 
           <div className="flex-1 p-6 space-y-6">
-            {/* Stats skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
                 <div
@@ -124,7 +125,6 @@ const PayrollDashboard: React.FC = () => {
               ))}
             </div>
 
-            {/* Actions skeleton */}
             <div className="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center opacity-70">
               <div className="h-10 w-64 bg-gray-200 rounded" />
               <div className="flex space-x-2 mt-2 md:mt-0">
@@ -133,7 +133,6 @@ const PayrollDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Table skeleton */}
             <div className="bg-white rounded-lg shadow-sm overflow-hidden opacity-70">
               <div className="h-12 bg-gray-100 flex items-center px-4">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -158,7 +157,6 @@ const PayrollDashboard: React.FC = () => {
               ))}
             </div>
 
-            {/* Loading indicator overlay */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
                 <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -203,9 +201,13 @@ const PayrollDashboard: React.FC = () => {
             totalRegularWage={totalRegularWage}
             totalProcessedPayroll={totalProcessedPayroll}
           />
-          <ActionsComponent employees={employees} />
+          <ActionsComponent
+            payrolls={payrolls}
+            displayedPayrolls={displayedPayrolls}
+          />
           <PayrollTable
-            employees={employees}
+            payrolls={payrolls}
+            setPayrolls={setPayrolls}
             handleCheckboxChange={handleCheckboxChange}
             getStatusColor={getStatusColor}
             getStatusIcon={getStatusIcon}
@@ -216,6 +218,12 @@ const PayrollDashboard: React.FC = () => {
           />
         </div>
       </div>
+      <Toaster
+        richColors
+        position="bottom-left"
+        expand={true}
+        duration={3000}
+      />
     </div>
   );
 };

@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { CreatePayrollFormProps } from "./Interfaces";
 import { getStatusColor, calculateDerivedValues } from "./Utils";
 import axios from "axios";
+import { toast, Toaster } from "sonner";
 
 const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
   const navigate = useNavigate();
@@ -45,6 +46,9 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
       } catch (err) {
         console.error("Error fetching employees:", err);
         setError("Failed to load employees");
+        toast.error("Failed to load employees", {
+          description: "Please try refreshing the page.",
+        });
       }
     };
 
@@ -98,15 +102,29 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
         onSubmit(formData);
       }
 
-      navigate("/Payroll", {
-        state: { message: "Payroll created successfully!", type: "success" },
+      toast.success("Payroll created successfully!", {
+        description: `Payroll for ${formData.name} has been added to the system.`,
+        duration: 3000,
       });
+
+      setTimeout(() => {
+        navigate("/Payroll", {
+          state: { message: "Payroll created successfully!", type: "success" },
+        });
+      }, 3000);
     } catch (err) {
-      console.error("Error creating payrolll:", err);
+      console.error("Error creating payroll:", err);
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.message || "Failed to create payroll");
+        toast.error("Failed to create payroll", {
+          description:
+            err.response.data.message || "An unexpected error occurred.",
+        });
       } else {
         setError("An unexpected error occurred. Please try again.");
+        toast.error("Error", {
+          description: "An unexpected error occurred. Please try again.",
+        });
       }
       setIsSubmitting(false);
     }
@@ -228,7 +246,6 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                 />
               </div>
 
-              {/* Similar modifications for other number inputs */}
               <div className="space-y-2">
                 <label
                   htmlFor="hourlyRate"
@@ -549,6 +566,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
           </div>
         </form>
       </div>
+      <Toaster position="bottom-left" richColors />
     </div>
   );
 };

@@ -40,7 +40,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
   const handleDownloadPDF = async (employee: Employee) => {
     try {
-      await generateEmployeePDF(employee); // Ensure it completes first
+      await generateEmployeePDF(employee);
       toast.success("Employee PDF downloaded successfully", {
         description: `PDF for ${employee.firstName} ${employee.lastName} has been generated.`,
       });
@@ -229,9 +229,9 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                               </AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will
-                                permanently delete the employee record for{" "}
+                                permanently delete the employee record for{" "}<strong>
                                 {employeeToDelete?.firstName}{" "}
-                                {employeeToDelete?.lastName} from the system.
+                                {employeeToDelete?.lastName}</strong> from the system.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -264,12 +264,6 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
             totalItems={filteredEmployees.length}
           />
         </div>
-        <Toaster
-          richColors
-          position="bottom-left"
-          expand={true}
-          duration={3000}
-        />
       </div>
     </>
   );

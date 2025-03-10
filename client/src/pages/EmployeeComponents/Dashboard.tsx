@@ -6,6 +6,7 @@ import Header from "../HeaderComponents/Header";
 import EmployeeStats from "./Stats";
 import EmployeeActions from "./Actions";
 import EmployeeTable from "./Table";
+import { Toaster } from "sonner";
 
 const EmployeeDashboard = () => {
   const location = useLocation();
@@ -35,13 +36,12 @@ const EmployeeDashboard = () => {
         setError(null);
         setDataLoaded(true);
 
-        // Add delay before showing the page with animation
         setTimeout(() => {
           setLoading(false);
           setTimeout(() => {
             setIsPageLoaded(true);
           }, 100);
-        }, 500); // Small delay to ensure smooth transition
+        }, 500);
       } catch (err) {
         console.error("Error fetching employees:", err);
         setError("Failed to load employees. Please try again later.");
@@ -51,7 +51,6 @@ const EmployeeDashboard = () => {
 
     fetchEmployees();
 
-    // Add the slide down animation style
     const style = document.createElement("style");
     style.textContent = `
       @keyframes slideDown {
@@ -209,6 +208,12 @@ const EmployeeDashboard = () => {
           </div>
         </div>
       </div>
+      <Toaster
+          richColors
+          position="bottom-left"
+          expand={true}
+          duration={3000}
+        />
     </div>
   );
 };

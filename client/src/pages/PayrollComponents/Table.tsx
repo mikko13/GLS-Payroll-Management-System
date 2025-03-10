@@ -1,8 +1,21 @@
-import React, { JSX, useMemo } from "react";
+import React, { JSX, useMemo, useState } from "react";
 import { Edit, Eye, Trash } from "lucide-react";
 import PaginationComponent from "./Pagination";
+import axios from "axios";
+import { toast, Toaster } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
-interface Employee {
+interface Payroll {
+  _id?: string;
   id: string;
   name: string;
   checked: boolean;
@@ -24,8 +37,9 @@ interface Employee {
   status: string;
 }
 
-interface EmployeeTableProps {
-  employees: Employee[];
+interface PayrollTableProps {
+  payrolls: Payroll[];
+  setPayrolls: React.Dispatch<React.SetStateAction<Payroll[]>>;
   handleCheckboxChange: (id: string) => void;
   getStatusColor: (status: string) => string;
   getStatusIcon: (status: string) => JSX.Element;
@@ -35,8 +49,10 @@ interface EmployeeTableProps {
   setCurrentPage: (value: number) => void;
 }
 
-const PayrollTable: React.FC<EmployeeTableProps> = ({
-  employees,
+const PayrollTable: React.FC<PayrollTableProps> = ({
+  payrolls,
+  setPayrolls,
+  handleCheckboxChange,
   getStatusColor,
   getStatusIcon,
   itemsPerPage,
@@ -44,22 +60,59 @@ const PayrollTable: React.FC<EmployeeTableProps> = ({
   currentPage,
   setCurrentPage,
 }) => {
-  const displayedEmployees = useMemo(() => {
+  const displayedPayrolls = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return employees.slice(startIndex, endIndex);
-  }, [employees, currentPage, itemsPerPage]);
+    return payrolls.slice(startIndex, endIndex);
+  }, [payrolls, currentPage, itemsPerPage]);
+  const [payrollToDelete, setPayrollToDelete] = useState<Payroll | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const nightDifferentialAmount = (employee: Employee) =>
-    employee.regularNightDifferential * 8.06;
+  const nightDifferentialAmount = (payroll: Payroll) =>
+    payroll.regularNightDifferential * 8.06;
 
-  const regularHolidayAmount = (employee: Employee) =>
-    employee.regularHoliday * 161.25;
+  const regularHolidayAmount = (payroll: Payroll) =>
+    payroll.regularHoliday * 161.25;
 
-  const specialHolidayAmount = (employee: Employee) =>
-    employee.specialHoliday * 104.81;
+  const specialHolidayAmount = (payroll: Payroll) =>
+    payroll.specialHoliday * 104.81;
 
-  const overtimeAmount = (employee: Employee) => employee.overtime * 100.78;
+  const overtimeAmount = (payroll: Payroll) => payroll.overtime * 100.78;
+
+  const handleDeleteClick = (payroll: Payroll) => {
+    setPayrollToDelete(payroll);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeletePayroll = async () => {
+    if (!payrollToDelete) return;
+
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/payrolls/${
+          payrollToDelete._id || payrollToDelete.id
+        }`
+      );
+
+      const updatedPayroll = payrolls.filter(
+        (emp) =>
+          (emp._id || emp.id) !== (payrollToDelete._id || payrollToDelete.id)
+      );
+      setPayrolls(updatedPayroll);
+
+      toast.success("Payroll Deleted", {
+        description: `Payroll for ${payrollToDelete.name} has been deleted successfully.`,
+      });
+    } catch (error) {
+      console.error("Error deleting payroll:", error);
+      toast.error("Delete Failed", {
+        description: "An error occurred while deleting the payroll.",
+      });
+    } finally {
+      setPayrollToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   return (
     <div className="flex-1 overflow-auto p-4">
@@ -97,71 +150,71 @@ const PayrollTable: React.FC<EmployeeTableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {displayedEmployees.map((employee) => (
+              {displayedPayrolls.map((payroll) => (
                 <tr
-                  key={employee.id}
+                  key={payroll.id}
                   className="border-b border-blue-50 hover:bg-blue-50 transition-all duration-200 animate-fadeIn"
                 >
                   <td className="p-3">
                     <div className="flex items-center">
                       <span className="text-sm text-gray-800 font-medium">
-                        {employee.name}
+                        {payroll.name}
                       </span>
                     </div>
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    {employee.numberOfRegularHours}
+                    {payroll.numberOfRegularHours}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.hourlyRate.toLocaleString()}
+                    ₱{payroll.hourlyRate.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.totalRegularWage.toLocaleString()}
+                    ₱{payroll.totalRegularWage.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{nightDifferentialAmount(employee).toLocaleString()}
+                    ₱{nightDifferentialAmount(payroll).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.prorated13thMonthPay.toLocaleString()}
+                    ₱{payroll.prorated13thMonthPay.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{specialHolidayAmount(employee).toLocaleString()}
+                    ₱{specialHolidayAmount(payroll).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{regularHolidayAmount(employee).toLocaleString()}
+                    ₱{regularHolidayAmount(payroll).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.serviceIncentiveLeave.toLocaleString()}
+                    ₱{payroll.serviceIncentiveLeave.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{overtimeAmount(employee).toLocaleString()}
+                    ₱{overtimeAmount(payroll).toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.totalAmount.toLocaleString()}
+                    ₱{payroll.totalAmount.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.hdmf.toLocaleString()}
+                    ₱{payroll.hdmf.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.hdmfLoans.toLocaleString()}
+                    ₱{payroll.hdmfLoans.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.sss.toLocaleString()}
+                    ₱{payroll.sss.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.phic.toLocaleString()}
+                    ₱{payroll.phic.toLocaleString()}
                   </td>
                   <td className="p-3 text-sm text-gray-800">
-                    ₱{employee.netPay.toLocaleString()}
+                    ₱{payroll.netPay.toLocaleString()}
                   </td>
                   <td className="p-3">
                     <span
                       className={`text-xs px-2 py-1 rounded-full flex items-center w-fit ${getStatusColor(
-                        employee.status
+                        payroll.status
                       )}`}
                     >
-                      {getStatusIcon(employee.status)}
-                      {employee.status}
+                      {getStatusIcon(payroll.status)}
+                      {payroll.status}
                     </span>
                   </td>
                   <td className="p-3 sticky right-0 bg-white z-10">
@@ -172,7 +225,10 @@ const PayrollTable: React.FC<EmployeeTableProps> = ({
                       <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer">
                         <Edit size={16} />
                       </button>
-                      <button className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer">
+                      <button
+                        className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer"
+                        onClick={() => handleDeleteClick(payroll)}
+                      >
                         <Trash size={16} />
                       </button>
                     </div>
@@ -188,9 +244,40 @@ const PayrollTable: React.FC<EmployeeTableProps> = ({
           setItemsPerPage={setItemsPerPage}
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
-          totalItems={employees.length}
+          totalItems={payrolls.length}
         />
       </div>
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              payroll record for <strong>{payrollToDelete?.name}</strong> from
+              the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="cursor-pointer"
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleDeletePayroll}
+              className="cursor-pointer"
+            >
+              Delete
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
