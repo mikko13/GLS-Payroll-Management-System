@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "../HeaderComponents/Header";
@@ -14,13 +14,16 @@ const PayrollDashboard: React.FC = () => {
   const [payrolls, setPayrolls] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [payPeriod, setPayPeriod] = useState("February 1-15, 2025");
+  const [payPeriod, setPayPeriod] = useState("All Pay Periods");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeSidebarItem, setActiveSidebarItem] = useState("Payroll");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [filteredPayrolls, setFilteredPayrolls] = useState([]);
+
+  const filteredPayrolls = useMemo(() => {
+    return payrolls.filter((payroll) => payroll.payPeriod === payPeriod);
+  }, [payrolls, payPeriod]);
 
   useEffect(() => {
     const fetchPayrolls = async () => {
@@ -61,6 +64,11 @@ const PayrollDashboard: React.FC = () => {
     };
   }, []);
 
+  // Reset to page 1 when pay period changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [payPeriod]);
+
   const handleCheckboxChange = (id: any) => {
     setPayrolls(
       payrolls.map((payroll) =>
@@ -68,11 +76,6 @@ const PayrollDashboard: React.FC = () => {
       )
     );
   };
-
-  const displayedPayrolls = filteredPayrolls.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
 
   const getStatusColor = (status: any) => {
     switch (status) {
@@ -96,12 +99,16 @@ const PayrollDashboard: React.FC = () => {
     }
   };
 
-  const totalNetPay = payrolls.reduce((sum, emp) => sum + (emp.netPay || 0), 0);
-  const totalRegularWage = payrolls.reduce(
+  // Calculate metrics based on filtered payrolls
+  const totalNetPay = filteredPayrolls.reduce(
+    (sum, emp) => sum + (emp.netPay || 0),
+    0
+  );
+  const totalRegularWage = filteredPayrolls.reduce(
     (sum, emp) => sum + (emp.totalRegularWage || 0),
     0
   );
-  const totalProcessedPayroll = payrolls
+  const totalProcessedPayroll = filteredPayrolls
     .filter((emp) => emp.status === "Processed")
     .reduce((sum, emp) => sum + (emp.netPay || 0), 0);
 
@@ -202,8 +209,11 @@ const PayrollDashboard: React.FC = () => {
             totalProcessedPayroll={totalProcessedPayroll}
           />
           <ActionsComponent
-            payrolls={payrolls}
-            displayedPayrolls={displayedPayrolls}
+            payrolls={filteredPayrolls}
+            displayedPayrolls={filteredPayrolls.slice(
+              (currentPage - 1) * itemsPerPage,
+              currentPage * itemsPerPage
+            )}
           />
           <PayrollTable
             payrolls={payrolls}
@@ -215,6 +225,7 @@ const PayrollDashboard: React.FC = () => {
             setItemsPerPage={setItemsPerPage}
             currentPage={currentPage}
             setCurrentPage={setCurrentPage}
+            selectedPayPeriod={payPeriod} // Pass the selected pay period
           />
         </div>
       </div>

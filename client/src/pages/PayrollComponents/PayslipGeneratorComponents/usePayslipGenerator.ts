@@ -1,11 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SetStateAction } from "react";
 import * as XLSX from "xlsx-js-style";
+import { toast } from "sonner";
 
-const usePayslipGenerator = (payrolls: any[], setIsGenerating: { (value: SetStateAction<boolean>): void; (arg0: boolean): void; }) => {
+const usePayslipGenerator = (
+  payrolls: any[],
+  setIsGenerating: {
+    (value: SetStateAction<boolean>): void;
+    (arg0: boolean): void;
+  }
+) => {
   const generateAllPayslips = () => {
     if (!payrolls || payrolls.length === 0) {
-      alert("No payrolls found to generate payslips.");
+      toast.error("No payrolls found to generate payslips.");
       return;
     }
 
@@ -17,7 +24,9 @@ const usePayslipGenerator = (payrolls: any[], setIsGenerating: { (value: SetStat
       const formattedDate = formatDate(today);
 
       let currentRow = 0;
-      const merges: { s: { r: any; c: number; }; e: { r: any; c: number; }; }[] | undefined = [];
+      const merges:
+        | { s: { r: any; c: number }; e: { r: any; c: number } }[]
+        | undefined = [];
 
       payrolls.forEach((payroll: any) => {
         const payslipData = createPayslipData(payroll, formattedDate);
@@ -40,9 +49,13 @@ const usePayslipGenerator = (payrolls: any[], setIsGenerating: { (value: SetStat
 
       const dateStr = formatDateForFilename(today);
       XLSX.writeFile(workbook, `Payslips_${dateStr}.xlsx`);
+
+      toast.success("Payslips generated successfully!");
     } catch (error) {
       console.error("Error generating payslips:", error);
-      alert("An error occurred while generating payslips. Please try again.");
+      toast.error(
+        "An error occurred while generating payslips. Please try again."
+      );
     } finally {
       setIsGenerating(false);
     }
@@ -58,7 +71,7 @@ const createWorkbookAndWorksheet = () => {
   const columnWidths = [
     { wch: 8.33 },
     { wch: 8.11 },
-    { wch: 8.33 }, 
+    { wch: 8.33 },
     { wch: 1.22 },
     { wch: 5.11 },
     { wch: 11.11 },
@@ -101,10 +114,29 @@ const formatCurrency = (value: number) => {
     : "";
 };
 
-const createPayslipData = (payroll: { regularHoliday: number; specialHoliday: number; regularNightDifferential: number; overtime: number; lastName: string; firstName: string; name: string; hourlyRate: any; numberOfRegularHours: any; totalRegularWage: any; hdmfLoans: any; sss: any; phic: any; hdmf: any; totalAmount: any; netPay: any; }, formattedDate: string) => {
+const createPayslipData = (payroll: {
+  regularHoliday: number;
+  specialHoliday: number;
+  regularNightDifferential: number;
+  overtime: number;
+  lastName: string;
+  firstName: string;
+  name: string;
+  hourlyRate: any;
+  numberOfRegularHours: any;
+  totalRegularWage: any;
+  hdmfLoans: any;
+  sss: any;
+  phic: any;
+  hdmf: any;
+  totalAmount: any;
+  netPay: any;
+  payPeriod: any;
+}) => {
   const calculatedRegularHoliday = payroll.regularHoliday * 161.25;
   const calculatedSpecialHoliday = payroll.specialHoliday * 104.81;
-  const calculatedRegularNightDifferential = payroll.regularNightDifferential * 8.06;
+  const calculatedRegularNightDifferential =
+    payroll.regularNightDifferential * 8.06;
   const calculatedOvertime = payroll.overtime * 100.78;
   return [
     [
@@ -115,13 +147,13 @@ const createPayslipData = (payroll: { regularHoliday: number; specialHoliday: nu
       "",
       "",
       "",
-      formattedDate,
+      payroll.payPeriod,
       "",
       "",
       "",
     ],
     [
-      `PAYROLL NAME: ${payroll.lastName?.toUpperCase() || ""}, ${
+      `PAYROLL NAME:${payroll.lastName?.toUpperCase() || ""} ${
         payroll.firstName?.toUpperCase() || payroll.name?.toUpperCase() || ""
       }`,
       "",
@@ -265,15 +297,79 @@ const applyStylesForPayroll = (
   applyBorderStyles(worksheet, currentRow);
 };
 
-const applyCellStyle = (worksheet: { [x: string]: { s: any; }; }, row: any, col: number, value: string, style: { font: { name: string; bold: boolean; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; } | { name: string; sz: number; underline: boolean; }; alignment: { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; } | { vertical: string; horizontal: string; }; border?: { top: { style: string; color: { rgb: string; }; }; left: { style: string; color: { rgb: string; }; }; } | { top: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; } | { right: { style: string; color: { rgb: string; }; }; bottom: { style: string; color: { rgb: string; }; }; }; }) => {
+const applyCellStyle = (
+  worksheet: { [x: string]: { s: any } },
+  row: any,
+  col: number,
+  value: string,
+  style: {
+    font:
+      | { name: string; bold: boolean; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number }
+      | { name: string; sz: number; underline: boolean };
+    alignment:
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string }
+      | { vertical: string; horizontal: string };
+    border?:
+      | {
+          top: { style: string; color: { rgb: string } };
+          left: { style: string; color: { rgb: string } };
+        }
+      | { top: { style: string; color: { rgb: string } } }
+      | { right: { style: string; color: { rgb: string } } }
+      | { right: { style: string; color: { rgb: string } } }
+      | { right: { style: string; color: { rgb: string } } }
+      | { right: { style: string; color: { rgb: string } } }
+      | {
+          right: { style: string; color: { rgb: string } };
+          bottom: { style: string; color: { rgb: string } };
+        };
+  }
+) => {
   const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
   if (!worksheet[cellAddress]) worksheet[cellAddress] = { v: value };
   worksheet[cellAddress].s = style;
 };
 
-const applyNumericStyles = (worksheet: { [x: string]: {
-  v: { s: { font: { name: string; sz: number; }; alignment: { vertical: string; horizontal: string; }; }; }; s: { font: { name: string; sz: number; }; alignment: { vertical: string; horizontal: string; }; }; 
-}; }, currentRow: number, payroll: { hourlyRate: any; numberOfRegularHours: any; sss: any; hdmfLoans: any; phic: any; hdmf: any; netPay: any; }) => {
+const applyNumericStyles = (
+  worksheet: {
+    [x: string]: {
+      v: {
+        s: {
+          font: { name: string; sz: number };
+          alignment: { vertical: string; horizontal: string };
+        };
+      };
+      s: {
+        font: { name: string; sz: number };
+        alignment: { vertical: string; horizontal: string };
+      };
+    };
+  },
+  currentRow: number,
+  payroll: {
+    hourlyRate: any;
+    numberOfRegularHours: any;
+    sss: any;
+    hdmfLoans: any;
+    phic: any;
+    hdmf: any;
+    netPay: any;
+  }
+) => {
   if (payroll.hourlyRate) {
     applyCellStyle(worksheet, currentRow + 3, 2, payroll.hourlyRate, {
       font: { name: "Abadi", sz: 9 },
@@ -290,16 +386,10 @@ const applyNumericStyles = (worksheet: { [x: string]: {
   }
 
   if (payroll.numberOfRegularHours) {
-    applyCellStyle(
-      worksheet,
-      currentRow + 3,
-      4,
-      payroll.numberOfRegularHours,
-      {
-        font: { name: "Abadi", sz: 9 },
-        alignment: { vertical: "center", horizontal: "right" },
-      }
-    );
+    applyCellStyle(worksheet, currentRow + 3, 4, payroll.numberOfRegularHours, {
+      font: { name: "Abadi", sz: 9 },
+      alignment: { vertical: "center", horizontal: "right" },
+    });
   }
 
   const regHolidayCell = XLSX.utils.encode_cell({ r: currentRow + 4, c: 2 });
@@ -337,7 +427,10 @@ const applyNumericStyles = (worksheet: { [x: string]: {
     };
   }
 
-  const specialHolidayAmtCell = XLSX.utils.encode_cell({ r: currentRow + 5, c: 5 });
+  const specialHolidayAmtCell = XLSX.utils.encode_cell({
+    r: currentRow + 5,
+    c: 5,
+  });
   if (worksheet[specialHolidayAmtCell] && worksheet[specialHolidayAmtCell].v) {
     worksheet[specialHolidayAmtCell].s = {
       font: { name: "Abadi", sz: 9 },
@@ -393,19 +486,13 @@ const applyNumericStyles = (worksheet: { [x: string]: {
     },
   });
 
-  applyCellStyle(
-    worksheet,
-    currentRow + 7,
-    10,
-    formatCurrency(payroll.hdmf),
-    {
-      font: { name: "Abadi", sz: 9 },
-      alignment: { vertical: "center", horizontal: "right" },
-      border: {
-        right: { style: "medium", color: { rgb: "000000" } },
-      },
-    }
-  );
+  applyCellStyle(worksheet, currentRow + 7, 10, formatCurrency(payroll.hdmf), {
+    font: { name: "Abadi", sz: 9 },
+    alignment: { vertical: "center", horizontal: "right" },
+    border: {
+      right: { style: "medium", color: { rgb: "000000" } },
+    },
+  });
 
   applyCellStyle(
     worksheet,
@@ -427,9 +514,12 @@ const applyNumericStyles = (worksheet: { [x: string]: {
   );
 };
 
-const applyBorderStyles = (worksheet: { [x: string]: { s: any; }; }, currentRow: number) => {
+const applyBorderStyles = (
+  worksheet: { [x: string]: { s: any } },
+  currentRow: number
+) => {
   const payslipRowCount = 9;
-  const payslipColCount = 11; 
+  const payslipColCount = 11;
 
   for (let rowIndex = 0; rowIndex < payslipRowCount; rowIndex++) {
     for (let colIndex = 0; colIndex < payslipColCount; colIndex++) {

@@ -4,13 +4,13 @@ import usePayslipGenerator from "./usePayslipGenerator";
 
 const PayslipGenerator = ({ payrolls }) => {
   const [isGenerating, setIsGenerating] = useState(false);
-  const { generateAllPayslips } = usePayslipGenerator(payrolls, setIsGenerating);
+  const { generateAllPayslips } = usePayslipGenerator(
+    payrolls,
+    setIsGenerating
+  );
 
   return (
-    <GenerateButton 
-      onClick={generateAllPayslips}
-      isGenerating={isGenerating}
-    />
+    <GenerateButton onClick={generateAllPayslips} isGenerating={isGenerating} />
   );
 };
 

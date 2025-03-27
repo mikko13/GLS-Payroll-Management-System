@@ -1,49 +1,34 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Save,
   ArrowLeft,
-  User,
-  Briefcase,
   CreditCard,
-  Phone,
-  Loader,
   Clock,
+  DollarSign,
+  PlusCircle,
   MinusCircle,
+  Loader,
 } from "lucide-react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast, Toaster } from "sonner";
+import { getStatusColor, calculateDerivedValues } from "./Utils";
+import PayPeriodComponent from "../PayPeriod";
 
-interface Payroll {
-  id: string;
-  name: string;
-  numberOfRegularHours: number;
-  hourlyRate: number;
-  totalRegularWage: number;
-  regularNightDifferential: number;
-  prorated13thMonthPay: number;
-  specialHoliday: number;
-  regularHoliday: number;
-  serviceIncentiveLeave: number;
-  overtime: number;
-  totalAmount: number;
-  hdmf: number;
-  hdmfLoans: number;
-  sss: number;
-  phic: number;
-  netPay: number;
-  status: string;
+interface IEmployee {
+  _id: string;
+  firstName: string;
+  lastName: string;
 }
 
 const UpdatePayrollForm: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const location = useLocation();
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<Payroll>({
+  const [employees, setEmployees] = useState<IEmployee[]>([]);
+  const [formData, setFormData] = useState({
+    employeeId: "",
     name: "",
     numberOfRegularHours: 8,
     hourlyRate: 80.625,
@@ -58,41 +43,69 @@ const UpdatePayrollForm: React.FC = () => {
     sss: 0,
     phic: 0,
     status: "Pending",
+    payPeriod: "",
   });
 
   useEffect(() => {
-    const statePayroll = location.state?.Payroll;
+    const fetchPayrollData = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/payrolls/${id}`
+        );
+        setFormData(response.data);
+      } catch (err) {
+        console.error("Error fetching payroll data:", err);
+        setError("Failed to load payroll data");
+        toast.error("Failed to load payroll data", {
+          description: "Please try refreshing the page.",
+        });
+      }
+    };
 
-    if (statePayroll) {
-      setFormData(statePayroll);
-    } else {
-      const fetchPayroll = async () => {
-        try {
-          const response = await axios.get(
-            `http://localhost:5000/api/payrolls/${id}`
-          );
-          setFormData(response.data);
-        } catch (err) {
-          console.error("Error fetching payroll:", err);
-          setError("Failed to load payroll data");
-          toast.error("Failed to load payroll data", {
-            description: "Unable to retrieve payroll information.",
-          });
-        }
-      };
+    const fetchEmployees = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/employees");
+        setEmployees(response.data);
+      } catch (err) {
+        console.error("Error fetching employees:", err);
+        setError("Failed to load employees");
+        toast.error("Failed to load employees", {
+          description: "Please try refreshing the page.",
+        });
+      }
+    };
 
-      fetchPayroll();
-    }
-  }, [id, location.state]);
+    fetchPayrollData();
+    fetchEmployees();
+  }, [id]);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    let parsedValue: string | number | null = value;
+
+    if (name !== "name" && name !== "status" && name !== "employeeId") {
+      parsedValue = value === "" ? null : parseFloat(value);
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: parsedValue }));
   };
+
+  const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    const selectedEmployee = employees.find((emp) => emp._id === value);
+    setFormData((prev) => ({
+      ...prev,
+      employeeId: value,
+      name: selectedEmployee
+        ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}`
+        : "",
+    }));
+  };
+
+  const { totalRegularWage, totalAmount, netPay } =
+    calculateDerivedValues(formData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,12 +119,12 @@ const UpdatePayrollForm: React.FC = () => {
       );
 
       toast.success("Payroll updated successfully!", {
-        description: `${formData.firstName} ${formData.lastName}'s information has been updated.`,
+        description: `Payroll for ${formData.name} has been updated.`,
         duration: 3000,
       });
 
       setTimeout(() => {
-        navigate("/payroll", {
+        navigate("/Payroll", {
           state: { message: "Payroll updated successfully!", type: "success" },
         });
       }, 3000);
@@ -133,19 +146,6 @@ const UpdatePayrollForm: React.FC = () => {
     }
   };
 
-  const getRemarksColor = (remarks: string) => {
-    switch (remarks) {
-      case "Active":
-        return "bg-emerald-100 text-emerald-800";
-      case "On leave":
-        return "bg-amber-100 text-amber-800";
-      case "Inactive":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="h-full w-full p-4 md:p-6">
@@ -159,8 +159,17 @@ const UpdatePayrollForm: React.FC = () => {
               <ArrowLeft size={20} />
             </button>
             <h2 className="text-xl md:text-2xl font-bold text-blue-800">
-              Update Payroll Record
+              Edit Payroll Record
             </h2>
+          </div>
+          <div className="flex items-center">
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                formData.status
+              )}`}
+            >
+              {formData.status}
+            </span>
           </div>
         </div>
 
@@ -170,32 +179,36 @@ const UpdatePayrollForm: React.FC = () => {
           </div>
         )}
 
+        <PayPeriodComponent
+          payPeriod={formData.payPeriod}
+          setPayPeriod={(period) =>
+            setFormData((prev) => ({ ...prev, payPeriod: period }))
+          }
+        />
+
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <CreditCard className="text-blue-600 mr-2" size={18} />
               <h3 className="text-md font-semibold text-blue-800">
-                Payroll Information
+                Employee Information
               </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label
-                  htmlFor="lastName"
+                  htmlFor="employeeID"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Employee Name
                 </label>
                 <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
+                  id="employeeId"
+                  name="employeeId"
+                  disabled
+                  value={formData.name}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                  placeholder="Enter last name"
                 />
               </div>
 
@@ -219,7 +232,6 @@ const UpdatePayrollForm: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <Clock className="text-blue-600 mr-2" size={18} />
@@ -248,7 +260,6 @@ const UpdatePayrollForm: React.FC = () => {
                 />
               </div>
 
-              {/* Similar modifications for other number inputs */}
               <div className="space-y-2">
                 <label
                   htmlFor="hourlyRate"
@@ -286,7 +297,6 @@ const UpdatePayrollForm: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <PlusCircle className="text-green-600 mr-2" size={18} />
@@ -411,7 +421,6 @@ const UpdatePayrollForm: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <MinusCircle className="text-red-600 mr-2" size={18} />
@@ -500,7 +509,6 @@ const UpdatePayrollForm: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-blue-50 p-4 md:p-5 rounded-lg shadow-sm border border-blue-200">
             <div className="flex items-center mb-4">
               <DollarSign className="text-blue-700 mr-2" size={18} />
@@ -545,7 +553,6 @@ const UpdatePayrollForm: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="flex justify-end space-x-3 mt-4 md:mt-6">
             <button
               type="button"
@@ -566,9 +573,10 @@ const UpdatePayrollForm: React.FC = () => {
               )}
               {isSubmitting ? "Saving..." : "Save Payroll"}
             </button>
-          </div>
+          </div>{" "}
         </form>
       </div>
+      <Toaster position="bottom-left" richColors />
     </div>
   );
 };

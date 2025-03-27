@@ -12,6 +12,10 @@ const PayrollSchema = new mongoose.Schema(
       enum: ["Pending", "Processed"],
       default: "Pending",
     },
+    payPeriod: {
+      type: String,
+      required: true,
+    },
     numberOfRegularHours: {
       type: Number,
       min: 0,
@@ -58,10 +62,10 @@ const PayrollSchema = new mongoose.Schema(
       default: null,
     },
     hdmf: {
-        type: Number,
-        min: 0,
-        default: null,
-      },
+      type: Number,
+      min: 0,
+      default: null,
+    },
     hdmfLoans: {
       type: Number,
       min: 0,

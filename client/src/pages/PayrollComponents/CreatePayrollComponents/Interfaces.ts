@@ -22,4 +22,5 @@ export interface Employee {
   phic: number;
   netPay: number;
   status: string;
+  payPeriod: string;
 }

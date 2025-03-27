@@ -21,10 +21,7 @@ function App() {
         <Route path="/Settings" element={<SettingsPage />} />
 
         <Route path="/Payroll/CreatePayroll" element={<CreatePayrollForm />} />
-        <Route
-          path="/Payroll/UpdatePayroll/:payrollId"
-          element={<UpdatePayrollForm />}
-        />
+        <Route path="/UpdatePayroll/:id" element={<UpdatePayrollForm />} />
 
         <Route path="/Employees/AddEmployee" element={<CreateEmployeeForm />} />
         <Route

@@ -19,7 +19,7 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
   const generatePayPeriods = () => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
-    const periods: string[] = [];
+    const periods: string[] = ["All Pay Periods"];
 
     for (let year = currentYear; year <= 2030; year++) {
       for (let month = 0; month < 12; month++) {
@@ -43,6 +43,7 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
 
     periods.sort((a, b) => {
       const parseDate = (periodString: string) => {
+        if (periodString === "All Pay Periods") return new Date(0);
         const [monthPart, datePart, yearPart] = periodString.split(" ");
         const monthIndex = new Date(
           Date.parse(monthPart + " 1, 2000")
@@ -58,25 +59,8 @@ const PayPeriodComponent: React.FC<PayPeriodProps> = ({
     setPayPeriods(periods);
     setLastGeneratedYear(2030);
 
-    const currentPeriod = periods.find((period) => {
-      const periodDate = new Date();
-      const [monthPart, datePart, yearPart] = period.split(" ");
-      const monthIndex = new Date(
-        Date.parse(monthPart + " 1, 2000")
-      ).getMonth();
-      const year = parseInt(yearPart);
-
-      return (
-        monthIndex === periodDate.getMonth() &&
-        year === periodDate.getFullYear() &&
-        (datePart.includes("1-15")
-          ? periodDate.getDate() <= 15
-          : periodDate.getDate() > 15)
-      );
-    });
-
-    if (currentPeriod && !payPeriod) {
-      setPayPeriod(currentPeriod);
+    if (!payPeriod) {
+      setPayPeriod("All Pay Periods");
     }
   };
 

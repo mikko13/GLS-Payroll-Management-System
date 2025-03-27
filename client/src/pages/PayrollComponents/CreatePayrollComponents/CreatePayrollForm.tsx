@@ -14,6 +14,7 @@ import { CreatePayrollFormProps } from "./Interfaces";
 import { getStatusColor, calculateDerivedValues } from "./Utils";
 import axios from "axios";
 import { toast, Toaster } from "sonner";
+import PayPeriodComponent from "../PayPeriod";
 
 const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
     sss: 0,
     phic: 0,
     status: "Pending",
+    payPeriod: "",
   });
 
   useEffect(() => {
@@ -66,7 +68,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
         ...prev,
         employeeId: selectedEmployeeId,
         name: `${selectedEmployee.lastName}, ${selectedEmployee.firstName}`,
-        hourlyRate: parseFloat(selectedEmployee.rate) || 80.625, // Use employee's rate or default
+        hourlyRate: parseFloat(selectedEmployee.rate) || 80.625,
       }));
     }
   };
@@ -129,7 +131,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
       setIsSubmitting(false);
     }
   };
-
+  
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="h-full w-full p-4 md:p-6">
@@ -156,6 +158,13 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </span>
           </div>
         </div>
+
+        <PayPeriodComponent
+          payPeriod={formData.payPeriod}
+          setPayPeriod={(period) =>
+            setFormData((prev) => ({ ...prev, payPeriod: period }))
+          }
+        />
 
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
