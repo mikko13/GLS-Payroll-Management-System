@@ -64,6 +64,9 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
   const [hasExistingImage, setHasExistingImage] = useState(false);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Add timestamp state for profile picture cache busting
+  const [profilePictureTimestamp, setProfilePictureTimestamp] =
+    useState<number>(Date.now());
 
   // Password validation states
   const [passwordFocused, setPasswordFocused] = useState(false);
@@ -100,10 +103,10 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
         // Set preview URL if user has a profile picture
         if (user.profilePicture?.hasImage) {
           setHasExistingImage(true);
+          const userId = user.id || user._id;
+          // Add timestamp to URL to prevent caching
           setPreviewUrl(
-            `http://localhost:5000/api/users/${
-              user.id || user._id
-            }/profile-picture`
+            `http://localhost:5000/api/users/${userId}/profile-picture?${profilePictureTimestamp}`
           );
         }
 
@@ -130,8 +133,9 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
           // Set preview URL if user has a profile picture
           if (userData.profilePicture?.hasImage) {
             setHasExistingImage(true);
+            // Add timestamp to URL to prevent caching
             setPreviewUrl(
-              `http://localhost:5000/api/users/${userData._id}/profile-picture`
+              `http://localhost:5000/api/users/${userData._id}/profile-picture?${profilePictureTimestamp}`
             );
           }
         } catch (err) {
@@ -147,7 +151,7 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
     };
 
     fetchUserData();
-  }, [id, user]);
+  }, [id, user, profilePictureTimestamp]);
 
   // Analyze password strength whenever password changes
   useEffect(() => {
@@ -333,7 +337,6 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
         submitData.append("password", formData.password);
       }
 
-      // Handle profile picture updates
       if (formData.profilePicture) {
         submitData.append("profilePicture", formData.profilePicture);
       } else if (removeCurrentImage) {
@@ -351,6 +354,9 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
           },
         }
       );
+
+      // Update timestamp to force image refresh after update
+      setProfilePictureTimestamp(Date.now());
 
       toast.success("User updated successfully!", {
         description: `${formData.firstName} ${formData.lastName}'s information has been updated.`,
@@ -441,11 +447,16 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
                           src={previewUrl}
                           alt="Profile preview"
                           className="w-32 h-32 rounded-full object-cover border-2 border-blue-500"
+                          onError={(e) => {
+                            e.currentTarget.src =
+                              "https://via.placeholder.com/400x400?text=Image+Error";
+                            e.currentTarget.alt = "Failed to load image";
+                          }}
                         />
                         <button
                           type="button"
                           onClick={removeProfilePicture}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                          className="cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
                           aria-label="Remove image"
                         >
                           <X size={16} />

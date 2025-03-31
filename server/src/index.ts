@@ -5,7 +5,8 @@ import dotenv from "dotenv";
 import path from "path";
 import employeeRoutes from "./routes/employeeRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
-import userRoutes from "./routes/userRoutes"
+import userRoutes from "./routes/userRoutes";
+import authRoutes from "./routes/authRoutes";
 
 const envPath = path.resolve(__dirname, "..", ".env");
 
@@ -43,6 +44,7 @@ mongoose
 app.use("/api/employees", employeeRoutes);
 app.use("/api/payrolls", payrollRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Employee Management API is running");

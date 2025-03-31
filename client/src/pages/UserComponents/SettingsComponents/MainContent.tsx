@@ -22,6 +22,7 @@ interface MainContentProps {
   setNotificationsEnabled: (enabled: boolean) => void;
   emailNotifications: boolean;
   setEmailNotifications: (enabled: boolean) => void;
+  userId: string; // Add userId to the props interface
 }
 
 const MainContent = ({
@@ -38,6 +39,7 @@ const MainContent = ({
   setNotificationsEnabled,
   emailNotifications,
   setEmailNotifications,
+  userId, // Destructure userId from props
 }: MainContentProps) => {
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -82,7 +84,7 @@ const MainContent = ({
             />
           )}
           {activeTab === "security" && (
-            <SecurityTab formData={formData} handleChange={handleChange} />
+            <SecurityTab userId={userId} />
           )}
           {activeTab === "preferences" && (
             <PreferencesTab

@@ -1,11 +1,14 @@
 // pages/SettingsPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "../SidebarComponents/Sidebar";
 import Header from "../HeaderComponents/Header";
 import MainContent from "./MainContent";
+import axios from "axios";
+import { toast } from "sonner";
 
 const SettingsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userId, setUserId] = useState(""); // Add userId state
   const [activeSidebarItem, setActiveSidebarItem] = useState("Settings");
   const [theme, setTheme] = useState("light");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -14,16 +17,48 @@ const SettingsPage = () => {
   const [language, setLanguage] = useState("en");
 
   const [formData, setFormData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+1 (555) 123-4567",
-    position: "HR Manager",
-    department: "Human Resources",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    position: "",
+    department: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/api/users/current",
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setFormData({
+          firstName: response.data.firstName,
+          lastName: response.data.lastName,
+          email: response.data.email,
+          phone: response.data.phone || "",
+          position: response.data.position || "",
+          department: response.data.department || "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+        setUserId(response.data._id); // Set the userId from the response
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        toast.error("Failed to load user data");
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,9 +68,23 @@ const SettingsPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    try {
+      const response = await axios.put(
+        "http://localhost:5000/api/users/current",
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    }
   };
 
   return (
@@ -50,7 +99,7 @@ const SettingsPage = () => {
         className="flex-1 flex flex-col h-screen overflow-hidden"
         style={{ background: "linear-gradient(135deg, #f8fafc, #f0f4f8)" }}
       >
-        <Header title="Settings" userName="Mommy" />
+        <Header />
         <MainContent
           formData={formData}
           handleChange={handleChange}
@@ -65,6 +114,7 @@ const SettingsPage = () => {
           setNotificationsEnabled={setNotificationsEnabled}
           emailNotifications={emailNotifications}
           setEmailNotifications={setEmailNotifications}
+          userId={userId}
         />
       </div>
     </div>

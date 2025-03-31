@@ -8,7 +8,8 @@ import {
   PhilippinePeso,
   ChevronRight,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
+import authService from "../../services/authService";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -27,7 +28,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleMenuClick = (menuItem: string, path: string) => {
     setActiveSidebarItem(menuItem);
-    navigate(path); // Navigate to the specified path
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate("/");
   };
 
   const menuItems = [
@@ -116,7 +122,10 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="p-4 border-t border-blue-100">
-          <button className="flex w-full items-center py-2 px-3 text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200">
+          <button
+            onClick={handleLogout}
+            className="cursor-pointer flex w-full items-center py-2 px-3 text-gray-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+          >
             <LogOut size={18} className="mr-3" />
             <span>Log out</span>
           </button>

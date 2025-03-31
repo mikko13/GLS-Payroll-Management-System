@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import BrandSection from "./BrandSection";
 import FeatureCard from "./FeatureCard";
 import LoginForm from "./LoginForm";
 import { PhilippinePeso, Lock } from "lucide-react";
+import authService from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 const LoginComponent = () => {
   const [email, setEmail] = useState("");
@@ -13,31 +16,30 @@ const LoginComponent = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [animationComplete, setAnimationComplete] = useState(false);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     setTimeout(() => {
       setAnimationComplete(true);
     }, 1000);
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setErrorMessage("");
 
-    if (!email || !password) {
-      setErrorMessage("Please enter both email and password");
-      return;
-    }
-
-    setIsLoading(true);
-
-    setTimeout(() => {
+    try {
+      await authService.login(email, password);
+      navigate("/dashboard"); // Redirect to dashboard after successful login
+    } catch (error: any) {
+      setErrorMessage(
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials."
+      );
+    } finally {
       setIsLoading(false);
-      if (email === "admin@example.com" && password === "password") {
-        window.location.href = "/dashboard";
-      } else {
-        setErrorMessage("Invalid email or password");
-      }
-    }, 1500);
+    }
   };
 
   return (
@@ -60,17 +62,23 @@ const LoginComponent = () => {
         <div className="relative z-10 flex flex-col justify-center items-center w-full p-6 md:p-8 lg:p-12">
           <div
             className={`transform transition-all duration-1000 ${
-              animationComplete ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+              animationComplete
+                ? "translate-y-0 opacity-100"
+                : "translate-y-10 opacity-0"
             }`}
           >
             <BrandSection />
             <div
               className={`space-y-6 md:space-y-8 transform transition-all duration-1000 delay-300 ${
-                animationComplete ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+                animationComplete
+                  ? "translate-y-0 opacity-100"
+                  : "translate-y-10 opacity-0"
               }`}
             >
               <FeatureCard
-                icon={<PhilippinePeso size={22} className="mr-3 flex-shrink-0" />}
+                icon={
+                  <PhilippinePeso size={22} className="mr-3 flex-shrink-0" />
+                }
                 title="Effortless Payroll Management"
                 description="Streamline your payroll operations with our comprehensive solution designed for modern businesses."
               />
@@ -88,7 +96,9 @@ const LoginComponent = () => {
       <div className="w-full md:w-1/2 lg:w-2/5 flex flex-col justify-center items-center p-4 sm:p-6 md:p-8 lg:p-12">
         <div
           className={`w-full max-w-md transform transition-all duration-1000 delay-300 ${
-            animationComplete ? "translate-y-0 opacity-100" : "translate-y-10 opacity-0"
+            animationComplete
+              ? "translate-y-0 opacity-100"
+              : "translate-y-10 opacity-0"
           }`}
         >
           {/* Mobile-only logo for small screens */}
@@ -113,7 +123,10 @@ const LoginComponent = () => {
           <div className="mt-4 sm:mt-6 text-center">
             <p className="text-xs sm:text-sm text-gray-600">
               Don't have an account?{" "}
-              <a href="#" className="text-blue-600 hover:text-blue-800 font-medium">
+              <a
+                href="#"
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
                 Contact your administrator
               </a>
             </p>

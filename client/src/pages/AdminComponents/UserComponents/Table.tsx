@@ -60,10 +60,15 @@ const UserTable: React.FC<UserTableProps> = ({
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [updatedProfilePictures, setUpdatedProfilePictures] = useState<
+    Record<string, string>
+  >({});
   const navigate = useNavigate();
 
   const handleViewProfilePicture = (userId: string) => {
-    const imageUrl = `http://localhost:5000/api/users/${userId}/profile-picture`;
+    const imageUrl = `http://localhost:5000/api/users/${
+      userId
+    }/profile-picture?${updatedProfilePictures[userId] || Date.now()}`;
     setEnlargedImageUrl(imageUrl);
   };
 
@@ -175,9 +180,18 @@ const UserTable: React.FC<UserTableProps> = ({
                       >
                         {user.profilePicture?.hasImage ? (
                           <img
-                            src={`http://localhost:5000/api/users/${user.id}/profile-picture`}
+                            src={`http://localhost:5000/api/users/${
+                              user.id
+                            }/profile-picture?${
+                              updatedProfilePictures[user.id] || Date.now()
+                            }`}
                             alt={`${user.firstName}'s profile`}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                "https://via.placeholder.com/400x400?text=Image+Error";
+                              e.currentTarget.alt = "Failed to load image";
+                            }}
                           />
                         ) : (
                           <User size={20} className="text-gray-400" />

@@ -1,9 +1,7 @@
 import multer from "multer";
 
-// Configure multer storage
-const storage = multer.memoryStorage(); // Store files in memory to save to MongoDB
+const storage = multer.memoryStorage(); 
 
-// File filter to only allow images
 const fileFilter = (
   req: Express.Request,
   file: Express.Multer.File,

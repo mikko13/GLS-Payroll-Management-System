@@ -1,16 +1,15 @@
 import mongoose, { Schema, Document } from "mongoose";
 import bcrypt from "bcrypt";
 
-// Interface for profile picture in the database
 interface IProfilePicture {
   data: Buffer;
   contentType: string;
 }
 
-// Interface for profile picture in responses
 export interface IProfilePictureResponse {
   contentType: string;
   hasImage: boolean;
+  dataUrl?: string;
 }
 
 export interface IUser extends Document {
@@ -18,17 +17,18 @@ export interface IUser extends Document {
   lastName: string;
   email: string;
   password: string;
+  role: string;
   profilePicture?: IProfilePicture;
   isActive: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
-// Interface for user object in responses (without binary data)
 export interface IUserResponse {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
+  role: string;
   profilePicture?: IProfilePictureResponse;
   isActive: boolean;
   createdAt: Date;
@@ -60,13 +60,18 @@ const UserSchema: Schema = new Schema(
       required: [true, "Password is required"],
       minlength: 6,
     },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
     profilePicture: {
       data: Buffer,
       contentType: String,
     },
     isActive: {
       type: Boolean,
-      default: false, // Default to active
+      default: false,
     },
   },
   {
