@@ -2,26 +2,22 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
 import employeeRoutes from "./routes/employeeRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
-
-const envPath = path.resolve(__dirname, "..", ".env");
-
-dotenv.config({ path: envPath });
+import config from "./config";
 
 const app = express();
 
-const PORT = process.env.PORT;
+const PORT = config.PORT;
 
 if (!PORT) {
   console.error("Error: PORT is not defined in .env file");
   process.exit(1);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = config.MONGODB_URI;
 
 if (!MONGODB_URI) {
   console.error("Error: MONGODB_URI is not defined in .env file");

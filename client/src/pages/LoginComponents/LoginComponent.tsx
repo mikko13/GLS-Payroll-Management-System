@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import BrandSection from "./BrandSection";
 import FeatureCard from "./FeatureCard";
@@ -19,28 +18,85 @@ const LoginComponent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if already logged in
+    if (authService.isAuthenticated()) {
+      checkUserAndRedirect();
+    }
+
+    // Animation timing
     setTimeout(() => {
       setAnimationComplete(true);
     }, 1000);
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const checkUserAndRedirect = async () => {
+    try {
+      // Get current user and check role
+      await authService.getCurrentUser();
+      if (authService.isAdmin()) {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      // If error occurs during verification, clear token
+      console.error("Error verifying authentication:", error);
+      authService.logout();
+    }
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage("");
 
     try {
-      await authService.login(email, password);
-      navigate("/dashboard"); // Redirect to dashboard after successful login
-    } catch (error: any) {
-      setErrorMessage(
-        error.response?.data?.message ||
-          "Login failed. Please check your credentials."
-      );
+      const response = await authService.login(email, password);
+      console.log("Login response:", response);
+
+      // Check if login was successful and user data exists
+      if (!response || !response.user) {
+        throw new Error("Invalid response from server");
+      }
+
+      // Double-check user role and redirect accordingly
+      if (response.user.role === "admin") {
+        console.log("Admin user detected, redirecting to admin dashboard");
+        navigate("/admin-dashboard");
+      } else {
+        console.log("Regular user detected, redirecting to dashboard");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+
+      // Extract error message from response if available
+      let message = "Login failed. Please check your credentials.";
+      if (error.response?.data?.message) {
+        message = error.response.data.message;
+      }
+
+      setErrorMessage(message);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // If remember me is checked, store email in localStorage
+  useEffect(() => {
+    if (rememberMe) {
+      localStorage.setItem("rememberedEmail", email);
+    }
+  }, [rememberMe, email]);
+
+  // Load remembered email on component mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100">

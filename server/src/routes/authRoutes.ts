@@ -1,5 +1,9 @@
+//authRoutes.ts
 import express from "express";
-import { login, getCurrentUser } from "../controllers/authController";
+import {
+  login,
+  getCurrentUser,
+} from "../controllers/authController";
 import { authenticateUser } from "../middleware/authMiddleware";
 
 const router = express.Router();

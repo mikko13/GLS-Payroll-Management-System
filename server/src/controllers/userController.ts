@@ -5,7 +5,122 @@ import UserModel, {
   IProfilePictureResponse,
 } from "../models/User";
 
-// Helper function to convert IUser to IUserResponse
+export const getUserByEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email parameter is required",
+      });
+    }
+
+    const user = await UserModel.findOne({
+      email: email.toString().toLowerCase(),
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User found",
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user by email:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching user",
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+};
+
+export const checkEmailExists = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.query;
+
+    // Check if email is provided
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const user = await UserModel.findOne({
+      email: email.toString().toLowerCase(),
+    });
+
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        exists: false,
+        message: "User not found with this email",
+      });
+    }
+
+    // User exists - include firstName and lastName in response
+    return res.status(200).json({
+      success: true,
+      exists: true,
+      message: "User exists",
+      user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isActive: user.isActive,
+      },
+    });
+  } catch (error) {
+    console.error("Error checking user existence:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while checking user existence",
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Email and new password are required" });
+    }
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    return res.status(500).json({ message: "Failed to reset password", error });
+  }
+};
+
 const userToResponse = (user: IUser): IUserResponse => {
   const userObj = user.toObject();
   const response: IUserResponse = {
@@ -19,7 +134,6 @@ const userToResponse = (user: IUser): IUserResponse => {
     updatedAt: userObj.updatedAt,
   };
 
-  // Add profile picture info without the binary data
   if (userObj.profilePicture) {
     response.profilePicture = {
       contentType: userObj.profilePicture.contentType,
@@ -32,7 +146,6 @@ const userToResponse = (user: IUser): IUserResponse => {
 
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
-    // Remove the @ts-ignore and properly type the request
     if (!req.user) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -66,22 +179,17 @@ export const updateCurrentUser = async (
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update basic fields
     if (req.body.firstName) user.firstName = req.body.firstName;
     if (req.body.lastName) user.lastName = req.body.lastName;
     if (req.body.email) user.email = req.body.email;
     if (req.body.password) user.password = req.body.password;
 
-    // Handle profile picture update
     if (req.file) {
-      // If there was an existing profile picture, we would unlink it here if stored on disk
-      // For MongoDB, we just overwrite the existing data
       user.profilePicture = {
         data: req.file.buffer,
         contentType: req.file.mimetype,
       };
     } else if (req.body.removeProfilePicture === "true") {
-      // Remove the profile picture
       user.profilePicture = undefined;
     }
 
@@ -107,22 +215,17 @@ export const updateUser = async (
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update basic fields
     if (req.body.firstName) user.firstName = req.body.firstName;
     if (req.body.lastName) user.lastName = req.body.lastName;
     if (req.body.email) user.email = req.body.email;
     if (req.body.password) user.password = req.body.password;
 
-    // Handle profile picture update
     if (req.file) {
-      // If there was an existing profile picture, we would unlink it here if stored on disk
-      // For MongoDB, we just overwrite the existing data
       user.profilePicture = {
         data: req.file.buffer,
         contentType: req.file.mimetype,
       };
     } else if (req.body.removeProfilePicture === "true") {
-      // Remove the profile picture
       user.profilePicture = undefined;
     }
 
@@ -138,7 +241,6 @@ export const updateUser = async (
   }
 };
 
-// Add this to your controller file
 export const toggleUserActiveStatus = async (req: Request, res: Response) => {
   try {
     const user = await UserModel.findById(req.params.id);
@@ -147,7 +249,6 @@ export const toggleUserActiveStatus = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Toggle the isActive status
     user.isActive = !user.isActive;
     await user.save();
 
@@ -163,12 +264,10 @@ export const toggleUserActiveStatus = async (req: Request, res: Response) => {
   }
 };
 
-// Get all users
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await UserModel.find().sort({ createdAt: -1 });
 
-    // Transform users to remove binary data
     const safeUsers = users.map((user) => userToResponse(user));
 
     res.status(200).json(safeUsers);
@@ -178,7 +277,6 @@ export const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
-// Get a single user by ID
 export const getUserById = async (req: Request, res: Response) => {
   try {
     const user = await UserModel.findById(req.params.id);
@@ -238,7 +336,6 @@ export const createUser = async (
   }
 };
 
-// Delete a user
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const deletedUser = await UserModel.findByIdAndDelete(req.params.id);
@@ -262,19 +359,16 @@ export const updateUserPassword = async (req: Request, res: Response) => {
     const { currentPassword, newPassword } = req.body;
     const userId = req.params.id;
 
-    // Find user by ID
     const user = await UserModel.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Verify current password
     const isPasswordValid = await user.comparePassword(currentPassword);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Current password is incorrect" });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 
@@ -293,7 +387,7 @@ export const getUserProfilePicture = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Profile picture not found" });
     }
 
-    res.set("Content-Type", user.profilePicture.contentType); // Fixed typo here
+    res.set("Content-Type", user.profilePicture.contentType);
     res.set("Cache-Control", "public, max-age=86400");
     res.set("Access-Control-Allow-Origin", "*");
 

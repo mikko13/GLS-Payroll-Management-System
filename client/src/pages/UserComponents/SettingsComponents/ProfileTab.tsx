@@ -401,10 +401,9 @@ const ProfileTab = ({
         </div>
       </div>
 
-      {/* Modal for enlarged profile picture - Made responsive */}
       {enlargedImageUrl && (
         <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 transition-all duration-300 bg-black bg-opacity-70"
+          className="fixed inset-0 flex items-center justify-center z-50 p-2 sm:p-4 transition-all duration-300"
           onClick={() => setEnlargedImageUrl(null)}
           style={{
             animation: "fadeIn 0.3s ease-out forwards",
@@ -431,7 +430,7 @@ const ProfileTab = ({
 
               {/* Close button in top right corner */}
               <button
-                className="absolute top-3 right-3 bg-black bg-opacity-50 cursor-pointer hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200 transform hover:scale-105"
+                className="absolute top-3 right-3 cursor-pointer hover:bg-opacity-70 text-white rounded-full p-2 transition-all duration-200 transform hover:scale-105"
                 onClick={() => setEnlargedImageUrl(null)}
                 aria-label="Close modal"
               >
@@ -448,10 +447,8 @@ const ProfileTab = ({
         </div>
       )}
 
-      {/* Add Toaster component for toast notifications */}
       <Toaster position="bottom-left" richColors />
 
-      {/* Add these keyframe animations to your CSS or style tag */}
       <style jsx>{`
         @keyframes fadeIn {
           from {

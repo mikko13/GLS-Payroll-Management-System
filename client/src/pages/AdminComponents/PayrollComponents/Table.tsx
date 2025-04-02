@@ -108,7 +108,7 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
   };
 
   const handleEditClick = (payroll: Payroll) => {
-    navigate(`/UpdatePayroll/${payroll._id || payroll.id}`, {
+    navigate(`/admin-payroll/update-payroll/${payroll._id || payroll.id}`, {
       state: { payroll },
     });
   };

@@ -7,6 +7,7 @@ import {
   Plus,
   X,
   ChevronDown,
+  Check,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -65,6 +66,24 @@ const EmployeeActions = ({
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
 
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (
+        !target.closest(".filter-dropdown") &&
+        !target.closest(".filter-button")
+      ) {
+        setFilterDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(true);
@@ -74,11 +93,20 @@ const EmployeeActions = ({
   }, []);
 
   const uniqueDepartments = [
-    ...new Set(employees.map((emp) => emp.department)),
-  ];
-  const uniquePositions = [...new Set(employees.map((emp) => emp.position))];
-  const uniqueStatuses = [...new Set(employees.map((emp) => emp.status))];
-  const uniqueRemarks = [...new Set(employees.map((emp) => emp.remarks))];
+    ...new Set(employees.map((emp) => emp.department).filter(Boolean)),
+  ].sort();
+
+  const uniquePositions = [
+    ...new Set(employees.map((emp) => emp.position).filter(Boolean)),
+  ].sort();
+
+  const uniqueStatuses = [
+    ...new Set(employees.map((emp) => emp.status).filter(Boolean)),
+  ].sort();
+
+  const uniqueRemarks = [
+    ...new Set(employees.map((emp) => emp.remarks).filter(Boolean)),
+  ].sort();
 
   const applyFilters = useCallback(() => {
     const filteredData = employees.filter((employee) => {
@@ -152,6 +180,22 @@ const EmployeeActions = ({
     setSearchQuery("");
     setFilteredEmployees(employees);
     setFilterDropdownOpen(false);
+
+    toast.success("Filters Reset", {
+      description: "All filters have been cleared.",
+      duration: 2000,
+    });
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: prev[key] === value ? "" : value,
+    }));
+  };
+
+  const getActiveFiltersCount = () => {
+    return Object.values(filters).filter(Boolean).length;
   };
 
   const generatePDF = () => {
@@ -311,7 +355,7 @@ const EmployeeActions = ({
 
   return (
     <div
-      className="p-4 transition-all duration-500 ease-out"
+      className="p-4 transition-all duration-500 ease-out z-[60]" // Increased z-index to 60
       style={{
         opacity: isVisible ? 1 : 0,
         transform: isVisible ? "translateY(0)" : "translateY(10px)",
@@ -380,11 +424,115 @@ const EmployeeActions = ({
           >
             <button
               onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-              className="p-2 rounded-md bg-white hover:bg-blue-50 border border-blue-200 flex items-center transition-all duration-200"
+              className="filter-button p-2 rounded-md bg-white hover:bg-blue-50 border border-blue-200 flex items-center transition-all duration-200"
             >
-              <Filter size={16} className="text-gray-400 mr-1" />
+              <Filter
+                size={16}
+                className={`mr-1 ${
+                  getActiveFiltersCount() > 0
+                    ? "text-blue-600"
+                    : "text-gray-400"
+                }`}
+              />
               <ChevronDown size={14} className="text-gray-400" />
+              {getActiveFiltersCount() > 0 && (
+                <span className="ml-1 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {getActiveFiltersCount()}
+                </span>
+              )}
             </button>
+
+            {filterDropdownOpen && (
+              <div className="filter-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn z-[70]">
+                {" "}
+                <div className="p-3 border-b border-gray-100 flex justify-between items-center">
+                  <h3 className="font-medium text-gray-700 text-sm">Filters</h3>
+                  <button
+                    onClick={resetFilters}
+                    className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    Reset all
+                  </button>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {filterSections.map((section) => (
+                    <div
+                      key={section.key}
+                      className="border-b border-gray-100 last:border-b-0"
+                    >
+                      <button
+                        onClick={() =>
+                          setActiveFilterSection(
+                            activeFilterSection === section.key
+                              ? null
+                              : section.key
+                          )
+                        }
+                        className="flex justify-between items-center p-3 w-full text-left hover:bg-blue-50 transition-colors"
+                      >
+                        <span className="text-sm font-medium text-gray-700 flex items-center">
+                          {section.label}
+                          {filters[section.key as keyof typeof filters] && (
+                            <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">
+                              1
+                            </span>
+                          )}
+                        </span>
+                        <ChevronDown
+                          size={14}
+                          className={`text-gray-400 transition-transform ${
+                            activeFilterSection === section.key
+                              ? "transform rotate-180"
+                              : ""
+                          }`}
+                        />
+                      </button>
+
+                      {activeFilterSection === section.key && (
+                        <div className="p-2 bg-gray-50 max-h-48 overflow-y-auto">
+                          {section.options.length > 0 ? (
+                            section.options.map((option) => (
+                              <button
+                                key={option}
+                                onClick={() =>
+                                  handleFilterChange(section.key, option)
+                                }
+                                className={`flex items-center justify-between w-full p-2 text-sm rounded-md transition-colors ${
+                                  filters[
+                                    section.key as keyof typeof filters
+                                  ] === option
+                                    ? "bg-blue-100 text-blue-800"
+                                    : "hover:bg-gray-100 text-gray-700"
+                                }`}
+                              >
+                                <span>{option}</span>
+                                {filters[
+                                  section.key as keyof typeof filters
+                                ] === option && (
+                                  <Check size={14} className="text-blue-600" />
+                                )}
+                              </button>
+                            ))
+                          ) : (
+                            <div className="p-2 text-sm text-gray-500 italic">
+                              No options available
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 bg-gray-50 border-t border-gray-100">
+                  <button
+                    onClick={() => setFilterDropdownOpen(false)}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                  >
+                    Apply Filters
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -425,11 +573,119 @@ const EmployeeActions = ({
             >
               <button
                 onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                className="p-2 rounded-md bg-white hover:bg-blue-50 border border-blue-200 flex items-center transition-all duration-200"
+                className="filter-button p-2 rounded-md bg-white hover:bg-blue-50 border border-blue-200 flex items-center transition-all duration-200"
               >
-                <Filter size={16} className="text-gray-400 mr-1" />
-                <ChevronDown size={14} className="text-gray-400" />
+                <Filter
+                  size={16}
+                  className={`${
+                    getActiveFiltersCount() > 0
+                      ? "text-blue-600"
+                      : "text-gray-400"
+                  }`}
+                />
+                {getActiveFiltersCount() > 0 && (
+                  <span className="ml-1 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    {getActiveFiltersCount()}
+                  </span>
+                )}
               </button>
+
+              {filterDropdownOpen && (
+                <div className="filter-dropdown absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden animate-fadeIn z-[70]">
+                  {" "}
+                  <div className="p-3 border-b border-gray-100 flex justify-between items-center">
+                    <h3 className="font-medium text-gray-700 text-sm">
+                      Filters
+                    </h3>
+                    <button
+                      onClick={resetFilters}
+                      className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      Reset all
+                    </button>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {filterSections.map((section) => (
+                      <div
+                        key={section.key}
+                        className="border-b border-gray-100 last:border-b-0"
+                      >
+                        <button
+                          onClick={() =>
+                            setActiveFilterSection(
+                              activeFilterSection === section.key
+                                ? null
+                                : section.key
+                            )
+                          }
+                          className="flex justify-between items-center p-3 w-full text-left hover:bg-blue-50 transition-colors"
+                        >
+                          <span className="text-sm font-medium text-gray-700 flex items-center">
+                            {section.label}
+                            {filters[section.key as keyof typeof filters] && (
+                              <span className="ml-2 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded-full">
+                                1
+                              </span>
+                            )}
+                          </span>
+                          <ChevronDown
+                            size={14}
+                            className={`text-gray-400 transition-transform ${
+                              activeFilterSection === section.key
+                                ? "transform rotate-180"
+                                : ""
+                            }`}
+                          />
+                        </button>
+
+                        {activeFilterSection === section.key && (
+                          <div className="p-2 bg-gray-50 max-h-48 overflow-y-auto">
+                            {section.options.length > 0 ? (
+                              section.options.map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() =>
+                                    handleFilterChange(section.key, option)
+                                  }
+                                  className={`flex items-center justify-between w-full p-2 text-sm rounded-md transition-colors ${
+                                    filters[
+                                      section.key as keyof typeof filters
+                                    ] === option
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "hover:bg-gray-100 text-gray-700"
+                                  }`}
+                                >
+                                  <span>{option}</span>
+                                  {filters[
+                                    section.key as keyof typeof filters
+                                  ] === option && (
+                                    <Check
+                                      size={14}
+                                      className="text-blue-600"
+                                    />
+                                  )}
+                                </button>
+                              ))
+                            ) : (
+                              <div className="p-2 text-sm text-gray-500 italic">
+                                No options available
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 bg-gray-50 border-t border-gray-100">
+                    <button
+                      onClick={() => setFilterDropdownOpen(false)}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
             <button
               onClick={() => setMobileActionsOpen(!mobileActionsOpen)}
@@ -482,6 +738,46 @@ const EmployeeActions = ({
           </div>
         )}
       </div>
+
+      {/* Active filters display */}
+      {getActiveFiltersCount() > 0 && (
+        <div
+          className="mt-3 flex flex-wrap gap-2 animate-slideUp"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transition: "opacity 300ms ease-out",
+            transitionDelay: "300ms",
+          }}
+        >
+          {Object.entries(filters).map(([key, value]) => {
+            if (!value) return null;
+
+            const section = filterSections.find((s) => s.key === key);
+            return (
+              <div
+                key={key}
+                className="bg-blue-50 text-blue-700 rounded-full px-3 py-1 text-xs flex items-center"
+              >
+                <span className="font-medium mr-1">{section?.label}:</span>
+                <span>{value}</span>
+                <button
+                  onClick={() => handleFilterChange(key, value)}
+                  className="ml-2 text-blue-500 hover:text-blue-700"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            );
+          })}
+
+          <button
+            onClick={resetFilters}
+            className="text-blue-600 hover:text-blue-800 text-xs underline cursor-pointer"
+          >
+            Clear all
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes slideDown {

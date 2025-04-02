@@ -23,6 +23,7 @@ interface User {
   firstName: string;
   lastName: string;
   email: string;
+  role: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -66,9 +67,9 @@ const UserTable: React.FC<UserTableProps> = ({
   const navigate = useNavigate();
 
   const handleViewProfilePicture = (userId: string) => {
-    const imageUrl = `http://localhost:5000/api/users/${
-      userId
-    }/profile-picture?${updatedProfilePictures[userId] || Date.now()}`;
+    const imageUrl = `http://localhost:5000/api/users/${userId}/profile-picture?${
+      updatedProfilePictures[userId] || Date.now()
+    }`;
     setEnlargedImageUrl(imageUrl);
   };
 
@@ -165,102 +166,108 @@ const UserTable: React.FC<UserTableProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {displayedUsers.map((user) => (
-                  <tr
-                    key={user.id}
-                    className="border-b border-blue-50 hover:bg-blue-50 transition-all duration-200 animate-fadeIn"
-                  >
-                    <td className="p-3 text-sm text-gray-800">
-                      <div
-                        className="w-10 h-10 rounded-full overflow-hidden bg-blue-50 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() =>
-                          user.profilePicture?.hasImage &&
-                          handleViewProfilePicture(user.id)
-                        }
-                      >
-                        {user.profilePicture?.hasImage ? (
-                          <img
-                            src={`http://localhost:5000/api/users/${
-                              user.id
-                            }/profile-picture?${
-                              updatedProfilePictures[user.id] || Date.now()
-                            }`}
-                            alt={`${user.firstName}'s profile`}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              e.currentTarget.src =
-                                "https://via.placeholder.com/400x400?text=Image+Error";
-                              e.currentTarget.alt = "Failed to load image";
-                            }}
-                          />
-                        ) : (
-                          <User size={20} className="text-gray-400" />
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-3 text-sm text-gray-800">
-                      {user.firstName}
-                    </td>
-                    <td className="p-3 text-sm text-gray-800">
-                      {user.lastName}
-                    </td>
-                    <td className="p-3 text-sm text-gray-800">{user.email}</td>
-                    <td className="p-3 text-sm">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          user.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {user.isActive ? "Active" : "Deactivated"}
-                      </span>
-                    </td>
-                    <td className="p-3 text-sm text-gray-800">
-                      {formatDate(user.createdAt)}
-                    </td>
-                    <td className="p-3 text-sm text-gray-800">
-                      {formatDate(user.updatedAt)}
-                    </td>
-                    <td className="p-3 sticky right-0 bg-white z-10">
-                      <div className="flex items-center space-x-2">
-                        <button
-                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
-                          onClick={() => handleEditUser(user)}
-                        >
-                          <Edit size={16} />
-                        </button>
-
-                        <button
-                          className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer ${
-                            user.isActive
-                              ? "bg-red-50 hover:bg-red-100 text-gray-600 hover:text-red-600"
-                              : "bg-green-50 hover:bg-green-100 text-gray-600 hover:text-green-600"
-                          }`}
-                          onClick={() => {
-                            setUserToToggleStatus(user);
-                            setStatusDialogOpen(true);
-                          }}
-                          title={
-                            user.isActive ? "Deactivate User" : "Activate User"
+                {displayedUsers
+                  .filter((user) => user.role !== "admin")
+                  .map((user) => (
+                    <tr
+                      key={user.id}
+                      className="border-b border-blue-50 hover:bg-blue-50 transition-all duration-200 animate-fadeIn"
+                    >
+                      <td className="p-3 text-sm text-gray-800">
+                        <div
+                          className="w-10 h-10 rounded-full overflow-hidden bg-blue-50 flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() =>
+                            user.profilePicture?.hasImage &&
+                            handleViewProfilePicture(user.id)
                           }
                         >
-                          <Power size={16} />
-                        </button>
-
-                        <button
-                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer"
-                          onClick={() => {
-                            setUserToDelete(user);
-                            setDeleteDialogOpen(true);
-                          }}
+                          {user.profilePicture?.hasImage ? (
+                            <img
+                              src={`http://localhost:5000/api/users/${
+                                user.id
+                              }/profile-picture?${
+                                updatedProfilePictures[user.id] || Date.now()
+                              }`}
+                              alt={`${user.firstName}'s profile`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  "https://via.placeholder.com/400x400?text=Image+Error";
+                                e.currentTarget.alt = "Failed to load image";
+                              }}
+                            />
+                          ) : (
+                            <User size={20} className="text-gray-400" />
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3 text-sm text-gray-800">
+                        {user.firstName}
+                      </td>
+                      <td className="p-3 text-sm text-gray-800">
+                        {user.lastName}
+                      </td>
+                      <td className="p-3 text-sm text-gray-800">
+                        {user.email}
+                      </td>
+                      <td className="p-3 text-sm">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.isActive
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
                         >
-                          <Trash size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {user.isActive ? "Active" : "Deactivated"}
+                        </span>
+                      </td>
+                      <td className="p-3 text-sm text-gray-800">
+                        {formatDate(user.createdAt)}
+                      </td>
+                      <td className="p-3 text-sm text-gray-800">
+                        {formatDate(user.updatedAt)}
+                      </td>
+                      <td className="p-3 sticky right-0 bg-white z-10">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <Edit size={16} />
+                          </button>
+
+                          <button
+                            className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer ${
+                              user.isActive
+                                ? "bg-red-50 hover:bg-red-100 text-gray-600 hover:text-red-600"
+                                : "bg-green-50 hover:bg-green-100 text-gray-600 hover:text-green-600"
+                            }`}
+                            onClick={() => {
+                              setUserToToggleStatus(user);
+                              setStatusDialogOpen(true);
+                            }}
+                            title={
+                              user.isActive
+                                ? "Deactivate User"
+                                : "Activate User"
+                            }
+                          >
+                            <Power size={16} />
+                          </button>
+
+                          <button
+                            className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer"
+                            onClick={() => {
+                              setUserToDelete(user);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

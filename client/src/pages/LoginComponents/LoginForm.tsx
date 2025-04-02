@@ -70,7 +70,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="cursor-pointer absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -90,7 +90,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                 Remember me
               </label>
             </div>
-            <a href="#" className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 transition-colors">
+            <a href="/ForgotPassword" className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 transition-colors">
               Forgot password?
             </a>
           </div>
@@ -98,7 +98,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full flex items-center justify-center rounded-md py-2 sm:py-3 px-4 text-white text-sm font-medium transition-all duration-300 ${
+            className={`cursor-pointer w-full flex items-center justify-center rounded-md py-2 sm:py-3 px-4 text-white text-sm font-medium transition-all duration-300 ${
               isLoading
                 ? "bg-blue-400 cursor-not-allowed"
                 : "bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 shadow-md hover:shadow-lg"

@@ -14,7 +14,6 @@ const fileFilter = (
   }
 };
 
-// Set up multer upload settings
 const upload = multer({
   storage: storage,
   limits: {

@@ -34,7 +34,7 @@ const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
           <div className="flex space-x-2">
             <button
               className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md cursor-pointer"
-              onClick={() => navigate("/Payroll/CreatePayroll")}
+              onClick={() => navigate("/admin-payroll/create-payroll")}
               style={{
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? "translateY(0)" : "translateY(5px)",
@@ -165,7 +165,7 @@ const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
               >
                 <button
                   className="bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 shadow-md w-full"
-                  onClick={() => navigate("/Payroll/CreatePayroll")}
+                  onClick={() => navigate("/admin-payroll/create-payroll")}
                 >
                   <Plus size={16} className="mr-2" />
                   Create Payroll Record

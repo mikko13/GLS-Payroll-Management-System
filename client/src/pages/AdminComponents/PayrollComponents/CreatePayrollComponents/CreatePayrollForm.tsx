@@ -110,7 +110,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
       });
 
       setTimeout(() => {
-        navigate("/Payroll", {
+        navigate("/admin-payroll", {
           state: { message: "Payroll created successfully!", type: "success" },
         });
       }, 3000);
@@ -138,7 +138,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <button
-              onClick={() => navigate("/payroll")}
+              onClick={() => navigate("/admin-payroll")}
               className="mr-3 p-2 rounded-full hover:bg-blue-100 transition-colors text-blue-600 cursor-pointer"
               aria-label="Go back"
             >
@@ -555,7 +555,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
           <div className="flex justify-end space-x-3 mt-4 md:mt-6">
             <button
               type="button"
-              onClick={() => navigate("/Payroll")}
+              onClick={() => navigate("/admin-payroll")}
               className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 shadow-sm cursor-pointer"
             >
               Cancel

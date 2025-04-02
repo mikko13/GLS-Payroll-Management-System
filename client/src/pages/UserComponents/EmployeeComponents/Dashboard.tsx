@@ -93,11 +93,9 @@ const EmployeeDashboard = () => {
       <div className="flex h-screen w-screen overflow-hidden bg-gray-50">
         <div className="w-64 h-full bg-blue-100 opacity-70 animate-pulse" />
         <div className="flex-1 flex flex-col">
-          {/* Header skeleton */}
           <div className="h-16 bg-white shadow-sm opacity-70 animate-pulse" />
 
           <div className="flex-1 p-6 space-y-6">
-            {/* Stats skeleton */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[1, 2, 3].map((i) => (
                 <div
@@ -110,7 +108,6 @@ const EmployeeDashboard = () => {
               ))}
             </div>
 
-            {/* Actions skeleton */}
             <div className="bg-white rounded-lg shadow-sm p-4 flex flex-col md:flex-row justify-between items-center opacity-70">
               <div className="h-10 w-64 bg-gray-200 rounded" />
               <div className="flex space-x-2 mt-2 md:mt-0">
@@ -119,7 +116,6 @@ const EmployeeDashboard = () => {
               </div>
             </div>
 
-            {/* Table skeleton */}
             <div className="bg-white rounded-lg shadow-sm overflow-hidden opacity-70">
               <div className="h-12 bg-gray-100 flex items-center px-4">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -144,7 +140,6 @@ const EmployeeDashboard = () => {
               ))}
             </div>
 
-            {/* Loading indicator overlay */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
               <div className="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
                 <div className="h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -153,6 +148,14 @@ const EmployeeDashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-red-50">
+        <div className="text-red-800 text-lg">Error loading employees</div>
       </div>
     );
   }
@@ -168,52 +171,46 @@ const EmployeeDashboard = () => {
         setActiveSidebarItem={setActiveSidebarItem}
         setSidebarOpen={setSidebarOpen}
       />
+
       <div
         className="flex-1 flex flex-col h-screen overflow-hidden"
         style={{ background: "linear-gradient(135deg, #f8fafc, #f0f4f8)" }}
       >
         <Header />
-        <div className="flex-1 overflow-y-auto">
-          {error && (
-            <div className="p-4 m-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
-              {error}
-            </div>
-          )}
 
-          <div className="content-animated">
-            <EmployeeStats
-              totalEmployees={totalEmployees}
-              activeEmployees={activeEmployees}
-              regularEmployees={regularEmployees}
-            />
+        <div className="overflow-y-auto">
+          <EmployeeStats
+            totalEmployees={totalEmployees}
+            activeEmployees={activeEmployees}
+            regularEmployees={regularEmployees}
+          />
 
-            <EmployeeActions
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              displayedEmployees={displayedEmployees}
-              employees={employees}
-              setFilteredEmployees={setFilteredEmployees}
-            />
+          <EmployeeActions
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            displayedEmployees={displayedEmployees}
+            employees={employees}
+            setFilteredEmployees={setFilteredEmployees}
+          />
 
-            <EmployeeTable
-              displayedEmployees={displayedEmployees}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              setItemsPerPage={setItemsPerPage}
-              filteredEmployees={filteredEmployees}
-              employees={employees}
-              setEmployees={setEmployees}
-            />
-          </div>
+          <EmployeeTable
+            displayedEmployees={displayedEmployees}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            itemsPerPage={itemsPerPage}
+            setItemsPerPage={setItemsPerPage}
+            filteredEmployees={filteredEmployees}
+            employees={employees}
+            setEmployees={setEmployees}
+          />
         </div>
       </div>
       <Toaster
-          richColors
-          position="bottom-left"
-          expand={true}
-          duration={3000}
-        />
+        richColors
+        position="bottom-left"
+        expand={true}
+        duration={3000}
+      />
     </div>
   );
 };

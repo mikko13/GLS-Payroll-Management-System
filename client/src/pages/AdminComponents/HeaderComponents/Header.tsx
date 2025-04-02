@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Bell, ChevronDown, X } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import UserAvatar from "./UserAvatar"; // Import the new component
 
 const Header = () => {
   const location = useLocation();
 
   const pageTitles = {
-    "/admin-payroll": "Payroll",
-    "/admin-employees": "Employees",
-    "/admin-system-settings": "System Settings",
-    "/admin-account-settings": "Account Settings",
-    "/admin-user-accounts": "User Accounts",
-    "/admin-dashboard": "Home",
+    "/payroll": "Payroll",
+    "/employees": "Employees",
+    "/settings": "Settings",
+    "/dashboard": "Home",
   };
 
   const title = pageTitles[location.pathname] || "Dashboard";
@@ -40,7 +39,6 @@ const Header = () => {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // Animation for title when route changes
   useEffect(() => {
     const titleElement = document.getElementById("page-title");
     if (titleElement) {
@@ -68,16 +66,13 @@ const Header = () => {
   ) => {
     e.stopPropagation();
 
-    // Get the notification element
     const notificationElement = document.getElementById(`notification-${id}`);
 
     if (notificationElement) {
-      // Apply exit animation
       notificationElement.style.transition = "all 0.3s ease";
       notificationElement.style.opacity = "0";
       notificationElement.style.transform = "translateX(20px)";
 
-      // Remove after animation completes
       setTimeout(() => {
         setNotifications(notifications.filter((n) => n.id !== id));
       }, 300);
@@ -169,18 +164,7 @@ const Header = () => {
             )}
           </div>
 
-          <div className="flex items-center space-x-2 group cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-700 to-blue-900 flex items-center justify-center text-white shadow group-hover:shadow-md transition-all duration-300">
-              A
-            </div>
-            <span className="text-gray-800 group-hover:text-blue-800 transition-colors duration-200">
-              Admin
-            </span>
-            <ChevronDown
-              size={16}
-              className="text-gray-400 group-hover:text-blue-800 transition-colors duration-200 group-hover:transform group-hover:rotate-180 transition-transform duration-300"
-            />
-          </div>
+          <UserAvatar />
         </div>
       </div>
     </div>

@@ -1,21 +1,18 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/User";
+const emailjs = require("@emailjs/nodejs");
+import crypto from "crypto";
+import config from "../config";
 
-// Login user
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    // Check if user exists
-    const user = await UserModel.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
+    // Find the user by email
+    const user = await UserModel.findOne({ email: email.toLowerCase() });
 
-    // Check if password is correct
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
+    if (!user) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
@@ -23,25 +20,37 @@ export const login = async (req: Request, res: Response) => {
     if (!user.isActive) {
       return res
         .status(403)
-        .json({ message: "Your account is inactive. Please contact admin." });
+        .json({
+          message: "Account is deactivated. Please contact administrator.",
+        });
+    }
+
+    // Compare passwords
+    const isPasswordMatch = await user.comparePassword(password);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET as string,
+      {
+        id: user._id,
+        email: user.email,
+        role: user.role, // Include role in the token
+      },
+      config.JWT_SECRET as string,
       { expiresIn: "24h" }
     );
 
-    // Return user data and token
+    // Return token and user info (including role)
     res.status(200).json({
-      message: "Login successful",
       token,
       user: {
-        _id: user._id,
+        id: user._id,
+        email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
         role: user.role,
         isActive: user.isActive,
       },
@@ -52,7 +61,12 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// Get current user info
+export const logout = (req: Request, res: Response) => {
+  // JWT is stateless, so we don't need to do anything server-side
+  // The client will remove the token
+  res.status(200).json({ message: "Logged out successfully" });
+};
+
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
     // @ts-ignore - We'll add user property through middleware

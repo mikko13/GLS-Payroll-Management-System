@@ -1,3 +1,4 @@
+import config from "../config";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
@@ -7,7 +8,6 @@ interface DecodedToken {
   role: string;
 }
 
-// Add user property to Request type
 declare global {
   namespace Express {
     interface Request {
@@ -22,7 +22,6 @@ export const authenticateUser = (
   next: NextFunction
 ) => {
   try {
-    // Get token from header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -31,13 +30,11 @@ export const authenticateUser = (
 
     const token = authHeader.split(" ")[1];
 
-    // Verify token
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      config.JWT_SECRET as string
     ) as DecodedToken;
 
-    // Add user info to request
     req.user = decoded;
     next();
   } catch (error) {

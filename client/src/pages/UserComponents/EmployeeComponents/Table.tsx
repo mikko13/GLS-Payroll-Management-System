@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState } from "react";
-import { Download, Edit, Trash } from "lucide-react";
+import { Download, Edit, Eye, Trash, X } from "lucide-react";
 import { generateEmployeePDF } from "./pdfGenerator";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -37,6 +36,8 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
     null
   );
+  const [viewEmployee, setViewEmployee] = useState<Employee | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const handleDownloadPDF = async (employee: Employee) => {
     try {
@@ -57,6 +58,11 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
     navigate(`/Employees/UpdateEmployee/${employee.id}`, {
       state: { employee },
     });
+  };
+
+  const handleViewEmployee = (employee: Employee) => {
+    setViewEmployee(employee);
+    setIsViewModalOpen(true);
   };
 
   const handleDeleteEmployee = async () => {
@@ -203,6 +209,12 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                       <div className="flex items-center space-x-2">
                         <button
                           className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
+                          onClick={() => handleViewEmployee(employee)}
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
                           onClick={() => handleEditEmployee(employee)}
                         >
                           <Edit size={16} />
@@ -213,44 +225,6 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
                         >
                           <Download size={16} />
                         </button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button
-                              className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-red-600 transition-all duration-200 cursor-pointer"
-                              onClick={() => setEmployeeToDelete(employee)}
-                            >
-                              <Trash size={16} />
-                            </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Are you absolutely sure?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete the employee record for{" "}
-                                <strong>
-                                  {employeeToDelete?.firstName}{" "}
-                                  {employeeToDelete?.lastName}
-                                </strong>{" "}
-                                from the system.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="cursor-pointer">
-                                Cancel
-                              </AlertDialogCancel>
-                              <Button
-                                variant="destructive"
-                                onClick={handleDeleteEmployee}
-                                className="cursor-pointer"
-                              >
-                                Delete
-                              </Button>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                       </div>
                     </td>
                   </tr>
@@ -268,6 +242,196 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
           />
         </div>
       </div>
+
+      {/* View Employee Modal */}
+      {isViewModalOpen && viewEmployee && (
+        <div className="p-5 fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsViewModalOpen(false)}
+          ></div>
+
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl relative z-10 animate-fadeIn overflow-hidden">
+            <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4">
+              <h3 className="text-xl font-semibold text-gray-800">
+                Employee Details - {viewEmployee.firstName}{" "}
+                {viewEmployee.lastName}
+              </h3>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-6">
+                {/* Basic Info */}
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-blue-700 mb-3">
+                    Personal Information
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Name:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.lastName}, {viewEmployee.firstName}{" "}
+                        {viewEmployee.middleName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Gender:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.gender}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Birthday:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.birthDate}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Civil Status:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.civilStatus}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Email Address:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.emailAddress}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Contact Number:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.contactNumber}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Permanent Address:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800 text-right">
+                        {viewEmployee.permanentAddress}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Employment Info */}
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h4 className="text-md font-semibold text-green-700 mb-3">
+                    Employment Information
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Position:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.position}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Department:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.department}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        Date Started:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.dateStarted}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Rate:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        ₱{parseFloat(viewEmployee.rate).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Status:</span>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full flex items-center ${getStatusColor(
+                          viewEmployee.status
+                        )}`}
+                      >
+                        {viewEmployee.status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Remarks:</span>
+                      {viewEmployee.remarks ? (
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full flex items-center ${getRemarksColor(
+                            viewEmployee.remarks
+                          )}`}
+                        >
+                          {getRemarksIcon(viewEmployee.remarks)}
+                          {viewEmployee.remarks}
+                        </span>
+                      ) : (
+                        <span className="text-sm font-medium text-gray-500">
+                          None
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Government IDs */}
+              <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+                <h4 className="text-md font-semibold text-gray-700 mb-3">
+                  Government IDs
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">SSS Number:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.sss}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">
+                        HDMF/PAGIBIG:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.hdmf}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Philhealth:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.philhealth}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">TIN Number:</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewEmployee.tin}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
