@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import PayrollModel from "../models/Payroll";
+import axios from "axios";
 
 export const getAllPayrolls = async (req: Request, res: Response) => {
   try {
@@ -82,6 +83,55 @@ export const createPayroll = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error creating payroll:", error);
     res.status(400).json({ message: "Failed to create payroll", error });
+  }
+};
+
+export const calculateThirteenthMonthPay = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { employeeId, year } = req.params;
+
+    // Get the employee name (assuming you have an endpoint to fetch employee details)
+    const employeeResponse = await axios.get(
+      `http://localhost:5000/api/employees/${employeeId}`
+    );
+    const employeeName = `${employeeResponse.data.lastName}, ${employeeResponse.data.firstName}`;
+
+    // Fetch all payroll records for this employee in the specified year
+    const payrolls = await PayrollModel.find({
+      name: employeeName,
+      payPeriod: { $regex: year },
+    }).sort({ payPeriod: 1 });
+
+    if (payrolls.length === 0) {
+      return res.status(404).json({
+        message: "No payroll records found for this employee and year",
+      });
+    }
+
+    const totalBasicSalary = payrolls.reduce((sum, payroll) => {
+      return sum + (payroll.totalRegularWage || 0);
+    }, 0);
+
+    const thirteenthMonthPay = totalBasicSalary / 12;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        employeeId,
+        year,
+        totalBasicSalary,
+        thirteenthMonthPay,
+        payrollRecordsCount: payrolls.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error calculating 13th month pay:", error);
+    res.status(500).json({
+      message: "Failed to calculate 13th month pay",
+    });
   }
 };
 

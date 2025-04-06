@@ -8,6 +8,7 @@ import {
   PlusCircle,
   MinusCircle,
   Loader,
+  AlertTriangle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CreatePayrollFormProps } from "./Interfaces";
@@ -15,12 +16,25 @@ import { getStatusColor, calculateDerivedValues } from "./Utils";
 import axios from "axios";
 import { toast, Toaster } from "sonner";
 import PayPeriodComponent from "../PayPeriod";
+import ThirteenthMonthCalculator from "./ThirteenthMonthCalculator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<IEmployee[]>([]);
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -131,7 +145,29 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
       setIsSubmitting(false);
     }
   };
-  
+
+  // Function to handle setting 13th month pay from calculator
+  const handleSet13thMonthPay = (value: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      prorated13thMonthPay: value,
+    }));
+    setShowCalculatorModal(false);
+    toast.success("13th Month Pay calculated", {
+      description: `Amount of ₱${value.toFixed(2)} has been added to the form.`,
+    });
+  };
+
+  const handleOpenCalculator = () => {
+    const currentMonth = new Date().getMonth();
+
+    if (currentMonth !== 11) {
+      setShowAlertDialog(true);
+    } else {
+      setShowCalculatorModal(true);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       <div className="h-full w-full p-4 md:p-6">
@@ -139,12 +175,12 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
           <div className="flex items-center">
             <button
               onClick={() => navigate("/admin-payroll")}
-              className="mr-3 p-2 rounded-full hover:bg-blue-100 transition-colors text-blue-600 cursor-pointer"
+              className="cursor-pointer mr-3 p-2 rounded-full hover:bg-blue-100 transition-colors text-blue-600 cursor-pointer"
               aria-label="Go back"
             >
               <ArrowLeft size={20} />
             </button>
-            <h2 className="text-xl md:text-2xl font-bold text-blue-800">
+            <h2 className="cursor-pointer text-xl md:text-2xl font-bold text-blue-800">
               Create New Payroll Record
             </h2>
           </div>
@@ -173,6 +209,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          {/* Employee Information Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <CreditCard className="text-blue-600 mr-2" size={18} />
@@ -227,6 +264,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
+          {/* Regular Work Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <Clock className="text-blue-600 mr-2" size={18} />
@@ -293,6 +331,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
+          {/* Additional Pay Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <PlusCircle className="text-green-600 mr-2" size={18} />
@@ -328,18 +367,28 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
                 >
                   13th Month Pay (₱)
                 </label>
-                <input
-                  type="number"
-                  id="prorated13thMonthPay"
-                  name="prorated13thMonthPay"
-                  min="0"
-                  step="0.01"
-                  value={formData.prorated13thMonthPay}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-green-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="prorated13thMonthPay"
+                    name="prorated13thMonthPay"
+                    min="0"
+                    step="0.01"
+                    value={formData.prorated13thMonthPay}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-green-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    className="cursor-pointer px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs rounded border border-green-300"
+                    onClick={handleOpenCalculator}
+                  >
+                    Calculate
+                  </button>
+                </div>
               </div>
 
+              {/* Other additional pay fields */}
               <div className="space-y-2">
                 <label
                   htmlFor="overtime"
@@ -418,6 +467,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
+          {/* Deductions Section */}
           <div className="bg-white p-4 md:p-5 rounded-lg shadow-sm border border-blue-100">
             <div className="flex items-center mb-4">
               <MinusCircle className="text-red-600 mr-2" size={18} />
@@ -507,6 +557,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
             </div>
           </div>
 
+          {/* Payment Summary Section */}
           <div className="bg-blue-50 p-4 md:p-5 rounded-lg shadow-sm border border-blue-200">
             <div className="flex items-center mb-4">
               <DollarSign className="text-blue-700 mr-2" size={18} />
@@ -576,6 +627,63 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
         </form>
       </div>
       <Toaster position="bottom-left" richColors />
+
+      {/* Alert Dialog for non-December 13th month calculation */}
+      <AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-amber-600">
+              <AlertTriangle className="mr-2" size={20} />
+              Early 13th Month Calculation
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You are calculating 13th Month Pay outside of December. Note that
+              this will be a prorated calculation based on current data and may
+              not reflect the final amount that should be paid in December.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="cursor-pointer">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowAlertDialog(false);
+                setShowCalculatorModal(true);
+              }}
+              className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Continue Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 13th Month Calculator Modal */}
+      {showCalculatorModal && (
+        <div className="fixed inset-0 z-50 flex backdrop-blur-sm transition-opacity items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-blue-800">
+                13th Month Pay Calculator
+              </h3>
+              <button
+                onClick={() => setShowCalculatorModal(false)}
+                className="cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-4">
+              <ThirteenthMonthCalculator
+                onCalculate={handleSet13thMonthPay}
+                employeeData={employees.find(
+                  (emp) => emp._id === formData.employeeId
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

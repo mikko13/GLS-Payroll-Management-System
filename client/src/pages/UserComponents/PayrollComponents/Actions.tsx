@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
-import { Table, Search, Filter, Plus, X } from "lucide-react";
+import { Search, Filter, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PayslipGenerator from "./PayslipGeneratorComponents/PayslipGenerator";
+import PayrollExcelGenerator from "./PayrollExcelGeneratorComponents/PayrollExcelGenerator";
 import { Toaster } from "sonner";
 
 interface ActionsProps {
   payrolls?: any[];
+  selectedPayPeriod?: string;
 }
 
-const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
+const Actions: React.FC<ActionsProps> = ({
+  payrolls = [],
+  selectedPayPeriod = "All Pay Periods",
+}) => {
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
@@ -45,8 +50,8 @@ const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
               <Plus size={16} className="mr-2" />
               Create Payroll Record
             </button>
-            <button
-              className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 border border-blue-200"
+
+            <div
               style={{
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? "translateY(0)" : "translateY(5px)",
@@ -54,9 +59,11 @@ const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
                 transitionDelay: "400ms",
               }}
             >
-              <Table size={16} className="mr-2" />
-              Generate Payroll
-            </button>
+              <PayrollExcelGenerator
+                payrolls={payrolls}
+                selectedPayPeriod={selectedPayPeriod}
+              />
+            </div>
 
             <div
               style={{
@@ -179,10 +186,10 @@ const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
                   transform: "translateY(-20px)",
                 }}
               >
-                <button className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-colors duration-200 border border-blue-200 w-full">
-                  <Table size={16} className="mr-2" />
-                  Generate Payroll
-                </button>
+                <PayrollExcelGenerator
+                  payrolls={payrolls}
+                  selectedPayPeriod={selectedPayPeriod}
+                />
               </div>
               <div
                 style={{

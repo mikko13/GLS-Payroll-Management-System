@@ -211,6 +211,7 @@ const PayrollDashboard: React.FC = () => {
           />
           <ActionsComponent
             payrolls={filteredPayrolls}
+            selectedPayPeriod={payPeriod} 
             displayedPayrolls={filteredPayrolls.slice(
               (currentPage - 1) * itemsPerPage,
               currentPage * itemsPerPage

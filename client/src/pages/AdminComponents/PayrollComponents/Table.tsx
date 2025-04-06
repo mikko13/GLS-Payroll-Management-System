@@ -2,7 +2,7 @@ import React, { JSX, useMemo, useState, useEffect } from "react";
 import { Edit, Eye, Trash, X } from "lucide-react";
 import PaginationComponent from "./Pagination";
 import axios from "axios";
-import { toast} from "sonner";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -73,7 +73,9 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
     if (selectedPayPeriod === "All Pay Periods") {
       return payrolls;
     }
-    return payrolls.filter((payroll) => payroll.payPeriod === selectedPayPeriod);
+    return payrolls.filter(
+      (payroll) => payroll.payPeriod === selectedPayPeriod
+    );
   }, [payrolls, selectedPayPeriod]);
 
   const displayedPayrolls = useMemo(() => {
@@ -81,6 +83,45 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
     const endIndex = startIndex + itemsPerPage;
     return filteredPayrolls.slice(startIndex, endIndex);
   }, [filteredPayrolls, currentPage, itemsPerPage]);
+
+  // Calculate totals for all filtered payrolls
+  const totals = useMemo(() => {
+    return filteredPayrolls.reduce(
+      (acc, payroll) => {
+        acc.numberOfRegularHours += payroll.numberOfRegularHours;
+        acc.totalRegularWage += payroll.totalRegularWage;
+        acc.nightDifferential += payroll.regularNightDifferential * 8.06;
+        acc.prorated13thMonthPay += payroll.prorated13thMonthPay;
+        acc.specialHoliday += payroll.specialHoliday * 104.81;
+        acc.regularHoliday += payroll.regularHoliday * 161.25;
+        acc.serviceIncentiveLeave += payroll.serviceIncentiveLeave;
+        acc.overtime += payroll.overtime * 100.78;
+        acc.totalAmount += payroll.totalAmount;
+        acc.hdmf += payroll.hdmf;
+        acc.hdmfLoans += payroll.hdmfLoans;
+        acc.sss += payroll.sss;
+        acc.phic += payroll.phic;
+        acc.netPay += payroll.netPay;
+        return acc;
+      },
+      {
+        numberOfRegularHours: 0,
+        totalRegularWage: 0,
+        nightDifferential: 0,
+        prorated13thMonthPay: 0,
+        specialHoliday: 0,
+        regularHoliday: 0,
+        serviceIncentiveLeave: 0,
+        overtime: 0,
+        totalAmount: 0,
+        hdmf: 0,
+        hdmfLoans: 0,
+        sss: 0,
+        phic: 0,
+        netPay: 0,
+      }
+    );
+  }, [filteredPayrolls]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -258,7 +299,7 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
                     </td>
                     <td className="p-3 sticky right-0 bg-white z-10">
                       <div className="flex items-center space-x-2">
-                        <button 
+                        <button
                           className="p-1.5 bg-blue-50 hover:bg-blue-100 rounded-md text-gray-600 hover:text-blue-700 transition-all duration-200 cursor-pointer"
                           onClick={() => handleViewClick(payroll)}
                         >
@@ -280,6 +321,58 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
                     </td>
                   </tr>
                 ))}
+
+                {/* Totals Row */}
+                <tr className="border-t-2 border-blue-200 bg-blue-50 font-medium text-blue-800">
+                  <td className="p-3" colSpan={2}>
+                    <div className="text-sm font-bold">TOTAL</div>
+                  </td>
+                  <td className="p-3 text-sm">
+                    {totals.numberOfRegularHours.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">-</td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.totalRegularWage.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.nightDifferential.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.prorated13thMonthPay.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.specialHoliday.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.regularHoliday.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.serviceIncentiveLeave.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.overtime.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm font-bold">
+                    ₱{totals.totalAmount.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.hdmf.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.hdmfLoans.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.sss.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.phic.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm font-bold">
+                    ₱{totals.netPay.toLocaleString()}
+                  </td>
+                  <td className="p-3">-</td>
+                  <td className="p-3 sticky right-0 bg-blue-50 z-10">-</td>
+                </tr>
               </tbody>
             </table>
           )}
@@ -328,41 +421,51 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
 
       {isViewModalOpen && viewPayroll && (
         <div className="p-5 fixed inset-0 z-50 flex items-center justify-center">
-          <div 
+          <div
             className="absolute inset-0 backdrop-blur-sm transition-opacity"
             onClick={() => setIsViewModalOpen(false)}
           ></div>
-          
+
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl relative z-10 animate-fadeIn overflow-hidden">
             <div className="flex justify-between items-center border-b border-gray-200 px-6 py-4">
               <h3 className="text-xl font-semibold text-gray-800">
                 Payroll Details - {viewPayroll.name}
               </h3>
-              <button 
+              <button
                 onClick={() => setIsViewModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="p-6 max-h-[80vh] overflow-y-auto">
               <div className="grid grid-cols-2 gap-6">
                 {/* Basic Info */}
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-blue-700 mb-3">Employee Information</h4>
+                  <h4 className="text-md font-semibold text-blue-700 mb-3">
+                    Employee Information
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Name:</span>
-                      <span className="text-sm font-medium text-gray-800">{viewPayroll.name}</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewPayroll.name}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Pay Period:</span>
-                      <span className="text-sm font-medium text-gray-800">{viewPayroll.payPeriod}</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {viewPayroll.payPeriod}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Status:</span>
-                      <span className={`text-xs px-2 py-1 rounded-full flex items-center ${getStatusColor(viewPayroll.status)}`}>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full flex items-center ${getStatusColor(
+                          viewPayroll.status
+                        )}`}
+                      >
                         {getStatusIcon(viewPayroll.status)}
                         {viewPayroll.status}
                       </span>
@@ -372,21 +475,37 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
 
                 {/* Summary */}
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-green-700 mb-3">Payment Summary</h4>
+                  <h4 className="text-md font-semibold text-green-700 mb-3">
+                    Payment Summary
+                  </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Gross Amount:</span>
-                      <span className="text-sm font-medium text-gray-800">₱{viewPayroll.totalAmount.toLocaleString()}</span>
+                      <span className="text-sm text-gray-600">
+                        Gross Amount:
+                      </span>
+                      <span className="text-sm font-medium text-gray-800">
+                        ₱{viewPayroll.totalAmount.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total Deductions:</span>
+                      <span className="text-sm text-gray-600">
+                        Total Deductions:
+                      </span>
                       <span className="text-sm font-medium text-red-600">
-                        ₱{(viewPayroll.hdmf + viewPayroll.hdmfLoans + viewPayroll.sss + viewPayroll.phic).toLocaleString()}
+                        ₱
+                        {(
+                          viewPayroll.hdmf +
+                          viewPayroll.hdmfLoans +
+                          viewPayroll.sss +
+                          viewPayroll.phic
+                        ).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Net Pay:</span>
-                      <span className="text-sm font-bold text-green-700">₱{viewPayroll.netPay.toLocaleString()}</span>
+                      <span className="text-sm font-bold text-green-700">
+                        ₱{viewPayroll.netPay.toLocaleString()}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -395,46 +514,85 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
               {/* Pay Details */}
               <div className="mt-6 grid grid-cols-1 gap-6">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-gray-700 mb-3">Earning Details</h4>
+                  <h4 className="text-md font-semibold text-gray-700 mb-3">
+                    Earning Details
+                  </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Regular Hours:</span>
-                        <span className="text-sm font-medium text-gray-800">{viewPayroll.numberOfRegularHours}</span>
+                        <span className="text-sm text-gray-600">
+                          Regular Hours:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          {viewPayroll.numberOfRegularHours}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Hourly Rate:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{viewPayroll.hourlyRate.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Hourly Rate:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{viewPayroll.hourlyRate.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Total Regular Wage:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{viewPayroll.totalRegularWage.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Total Regular Wage:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{viewPayroll.totalRegularWage.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Night Differential:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{nightDifferentialAmount(viewPayroll).toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Night Differential:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱
+                          {nightDifferentialAmount(
+                            viewPayroll
+                          ).toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">13th Month Pay:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{viewPayroll.prorated13thMonthPay.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          13th Month Pay:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{viewPayroll.prorated13thMonthPay.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Special Holiday:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{specialHolidayAmount(viewPayroll).toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Special Holiday:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{specialHolidayAmount(viewPayroll).toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Regular Holiday:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{regularHolidayAmount(viewPayroll).toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Regular Holiday:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{regularHolidayAmount(viewPayroll).toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Service Incentive Leave:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{viewPayroll.serviceIncentiveLeave.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          Service Incentive Leave:
+                        </span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{viewPayroll.serviceIncentiveLeave.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Overtime:</span>
-                        <span className="text-sm font-medium text-gray-800">₱{overtimeAmount(viewPayroll).toLocaleString()}</span>
+                        <span className="text-sm font-medium text-gray-800">
+                          ₱{overtimeAmount(viewPayroll).toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -442,33 +600,44 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
 
                 {/* Deductions */}
                 <div className="bg-red-50 p-4 rounded-lg">
-                  <h4 className="text-md font-semibold text-red-700 mb-3">Deductions</h4>
+                  <h4 className="text-md font-semibold text-red-700 mb-3">
+                    Deductions
+                  </h4>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">HDMF:</span>
-                        <span className="text-sm font-medium text-red-600">₱{viewPayroll.hdmf.toLocaleString()}</span>
+                        <span className="text-sm font-medium text-red-600">
+                          ₱{viewPayroll.hdmf.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">HDMF Loans:</span>
-                        <span className="text-sm font-medium text-red-600">₱{viewPayroll.hdmfLoans.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">
+                          HDMF Loans:
+                        </span>
+                        <span className="text-sm font-medium text-red-600">
+                          ₱{viewPayroll.hdmfLoans.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">SSS:</span>
-                        <span className="text-sm font-medium text-red-600">₱{viewPayroll.sss.toLocaleString()}</span>
+                        <span className="text-sm font-medium text-red-600">
+                          ₱{viewPayroll.sss.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">PHIC:</span>
-                        <span className="text-sm font-medium text-red-600">₱{viewPayroll.phic.toLocaleString()}</span>
+                        <span className="text-sm font-medium text-red-600">
+                          ₱{viewPayroll.phic.toLocaleString()}
+                        </span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
           </div>
         </div>
       )}

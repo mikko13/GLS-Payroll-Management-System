@@ -8,7 +8,6 @@ import {
   PhilippinePeso,
   ChevronRight,
   UserCog,
-  Cog,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import authService from "@/pages/services/authService";
@@ -63,11 +62,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       name: "Account Settings",
       icon: <Settings size={18} />,
       path: "/admin-settings",
-    },
-    {
-      name: "System Settings",
-      icon: <Cog size={18} />,
-      path: "/admin-system-settings",
     },
   ];
 

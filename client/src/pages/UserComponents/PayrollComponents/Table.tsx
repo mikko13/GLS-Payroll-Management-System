@@ -84,6 +84,45 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
     return filteredPayrolls.slice(startIndex, endIndex);
   }, [filteredPayrolls, currentPage, itemsPerPage]);
 
+  // Calculate totals for all filtered payrolls
+  const totals = useMemo(() => {
+    return filteredPayrolls.reduce(
+      (acc, payroll) => {
+        acc.numberOfRegularHours += payroll.numberOfRegularHours;
+        acc.totalRegularWage += payroll.totalRegularWage;
+        acc.nightDifferential += payroll.regularNightDifferential * 8.06;
+        acc.prorated13thMonthPay += payroll.prorated13thMonthPay;
+        acc.specialHoliday += payroll.specialHoliday * 104.81;
+        acc.regularHoliday += payroll.regularHoliday * 161.25;
+        acc.serviceIncentiveLeave += payroll.serviceIncentiveLeave;
+        acc.overtime += payroll.overtime * 100.78;
+        acc.totalAmount += payroll.totalAmount;
+        acc.hdmf += payroll.hdmf;
+        acc.hdmfLoans += payroll.hdmfLoans;
+        acc.sss += payroll.sss;
+        acc.phic += payroll.phic;
+        acc.netPay += payroll.netPay;
+        return acc;
+      },
+      {
+        numberOfRegularHours: 0,
+        totalRegularWage: 0,
+        nightDifferential: 0,
+        prorated13thMonthPay: 0,
+        specialHoliday: 0,
+        regularHoliday: 0,
+        serviceIncentiveLeave: 0,
+        overtime: 0,
+        totalAmount: 0,
+        hdmf: 0,
+        hdmfLoans: 0,
+        sss: 0,
+        phic: 0,
+        netPay: 0,
+      }
+    );
+  }, [filteredPayrolls]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedPayPeriod, setCurrentPage]);
@@ -276,6 +315,58 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
                     </td>
                   </tr>
                 ))}
+
+                {/* Totals Row */}
+                <tr className="border-t-2 border-blue-200 bg-blue-50 font-medium text-blue-800">
+                  <td className="p-3" colSpan={2}>
+                    <div className="text-sm font-bold">TOTAL</div>
+                  </td>
+                  <td className="p-3 text-sm">
+                    {totals.numberOfRegularHours.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">-</td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.totalRegularWage.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.nightDifferential.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.prorated13thMonthPay.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.specialHoliday.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.regularHoliday.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.serviceIncentiveLeave.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.overtime.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm font-bold">
+                    ₱{totals.totalAmount.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.hdmf.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.hdmfLoans.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.sss.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm">
+                    ₱{totals.phic.toLocaleString()}
+                  </td>
+                  <td className="p-3 text-sm font-bold">
+                    ₱{totals.netPay.toLocaleString()}
+                  </td>
+                  <td className="p-3">-</td>
+                  <td className="p-3 sticky right-0 bg-blue-50 z-10">-</td>
+                </tr>
               </tbody>
             </table>
           )}

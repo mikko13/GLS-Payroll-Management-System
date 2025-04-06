@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Table, Search, Filter, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import PayslipGenerator from "./PayslipGeneratorComponents/PayslipGenerator";
 import { Toaster } from "sonner";
 
 interface ActionsProps {
@@ -45,29 +44,7 @@ const Actions: React.FC<ActionsProps> = ({ payrolls = [] }) => {
               <Plus size={16} className="mr-2" />
               Create Payroll Record
             </button>
-            <button
-              className="bg-white hover:bg-blue-50 text-gray-800 px-3 py-2 rounded-md text-sm flex items-center transition-all duration-200 border border-blue-200"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(5px)",
-                transition: "opacity 500ms ease-out, transform 500ms ease-out",
-                transitionDelay: "400ms",
-              }}
-            >
-              <Table size={16} className="mr-2" />
-              Generate Payroll
-            </button>
-
-            <div
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateY(0)" : "translateY(5px)",
-                transition: "opacity 500ms ease-out, transform 500ms ease-out",
-                transitionDelay: "500ms",
-              }}
-            >
-              <PayslipGenerator payrolls={payrolls} />
-            </div>
+        
           </div>
           <div className="flex items-center space-x-2">
             <div

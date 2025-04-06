@@ -70,7 +70,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
           <select
             value={itemsPerPage}
             onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
-            className="border border-blue-100 rounded px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="cursor-pointer border border-blue-100 rounded px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
@@ -82,7 +82,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`p-2 rounded ${
+          className={`cursor-pointer p-2 rounded ${
             currentPage === 1
               ? "bg-gray-100 text-gray-400"
               : "bg-blue-50 text-gray-600 hover:bg-blue-100 hover:text-blue-700"
@@ -99,7 +99,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
           <button
             key={page}
             onClick={() => handlePageChange(page)}
-            className={`h-8 w-8 rounded flex items-center justify-center text-sm transition-all duration-200 ${
+            className={`cursor-pointer h-8 w-8 rounded flex items-center justify-center text-sm transition-all duration-200 ${
               currentPage === page
                 ? "bg-blue-600 text-white"
                 : "bg-blue-50 text-gray-700 hover:bg-blue-100"
@@ -116,7 +116,7 @@ const PaginationComponent: React.FC<PaginationProps> = ({
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`p-2 rounded ${
+          className={`cursor-pointer p-2 rounded ${
             currentPage === totalPages
               ? "bg-gray-100 text-gray-400"
               : "bg-blue-50 text-gray-600 hover:bg-blue-100 hover:text-blue-700"

@@ -9,16 +9,29 @@ import {
   PlusCircle,
   MinusCircle,
   Loader,
+  AlertTriangle,
 } from "lucide-react";
 import axios from "axios";
 import { toast, Toaster } from "sonner";
 import { getStatusColor, calculateDerivedValues } from "./Utils";
 import PayPeriodComponent from "../PayPeriod";
+import ThirteenthMonthCalculator from "./ThirteenthMonthCalculator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface IEmployee {
   _id: string;
   firstName: string;
   lastName: string;
+  rate: string;
 }
 
 const UpdatePayrollForm: React.FC = () => {
@@ -27,6 +40,9 @@ const UpdatePayrollForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [employees, setEmployees] = useState<IEmployee[]>([]);
+  const [showCalculatorModal, setShowCalculatorModal] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+
   const [formData, setFormData] = useState({
     employeeId: "",
     name: "",
@@ -93,15 +109,19 @@ const UpdatePayrollForm: React.FC = () => {
   };
 
   const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = e.target;
-    const selectedEmployee = employees.find((emp) => emp._id === value);
-    setFormData((prev) => ({
-      ...prev,
-      employeeId: value,
-      name: selectedEmployee
-        ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}`
-        : "",
-    }));
+    const selectedEmployeeId = e.target.value;
+    const selectedEmployee = employees.find(
+      (emp) => emp._id === selectedEmployeeId
+    );
+
+    if (selectedEmployee) {
+      setFormData((prev) => ({
+        ...prev,
+        employeeId: selectedEmployeeId,
+        name: `${selectedEmployee.lastName}, ${selectedEmployee.firstName}`,
+        hourlyRate: parseFloat(selectedEmployee.rate) || 80.625,
+      }));
+    }
   };
 
   const { totalRegularWage, totalAmount, netPay } =
@@ -143,6 +163,28 @@ const UpdatePayrollForm: React.FC = () => {
         });
       }
       setIsSubmitting(false);
+    }
+  };
+
+  // Function to handle setting 13th month pay from calculator
+  const handleSet13thMonthPay = (value: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      prorated13thMonthPay: value,
+    }));
+    setShowCalculatorModal(false);
+    toast.success("13th Month Pay calculated", {
+      description: `Amount of ₱${value.toFixed(2)} has been added to the form.`,
+    });
+  };
+
+  const handleOpenCalculator = () => {
+    const currentMonth = new Date().getMonth();
+
+    if (currentMonth !== 11) {
+      setShowAlertDialog(true);
+    } else {
+      setShowCalculatorModal(true);
     }
   };
 
@@ -198,18 +240,26 @@ const UpdatePayrollForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label
-                  htmlFor="employeeID"
+                  htmlFor="employeeId"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Employee Name
+                  Select Employee
                 </label>
-                <input
+                <select
                   id="employeeId"
                   name="employeeId"
-                  disabled
-                  value={formData.name}
+                  required
+                  value={formData.employeeId}
+                  onChange={handleEmployeeChange}
                   className="w-full rounded-md border border-blue-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
-                />
+                >
+                  <option value="">Select an employee</option>
+                  {employees.map((employee) => (
+                    <option key={employee._id} value={employee._id}>
+                      {`${employee.lastName}, ${employee.firstName}`}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
@@ -332,16 +382,25 @@ const UpdatePayrollForm: React.FC = () => {
                 >
                   13th Month Pay (₱)
                 </label>
-                <input
-                  type="number"
-                  id="prorated13thMonthPay"
-                  name="prorated13thMonthPay"
-                  min="0"
-                  step="0.01"
-                  value={formData.prorated13thMonthPay}
-                  onChange={handleChange}
-                  className="w-full rounded-md border border-green-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    id="prorated13thMonthPay"
+                    name="prorated13thMonthPay"
+                    min="0"
+                    step="0.01"
+                    value={formData.prorated13thMonthPay}
+                    onChange={handleChange}
+                    className="w-full rounded-md border border-green-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200"
+                  />
+                  <button
+                    type="button"
+                    className="cursor-pointer px-2 py-1 bg-green-100 hover:bg-green-200 text-green-700 text-xs rounded border border-green-300"
+                    onClick={handleOpenCalculator}
+                  >
+                    Calculate
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -573,10 +632,69 @@ const UpdatePayrollForm: React.FC = () => {
               )}
               {isSubmitting ? "Saving..." : "Save Payroll"}
             </button>
-          </div>{" "}
+          </div>
         </form>
       </div>
       <Toaster position="bottom-left" richColors />
+
+      {/* Alert Dialog for non-December 13th month calculation */}
+      <AlertDialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-amber-600">
+              <AlertTriangle className="mr-2" size={20} />
+              Early 13th Month Calculation
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              You are calculating 13th Month Pay outside of December. Note that
+              this will be a prorated calculation based on current data and may
+              not reflect the final amount that should be paid in December.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="cursor-pointer">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowAlertDialog(false);
+                setShowCalculatorModal(true);
+              }}
+              className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Continue Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* 13th Month Calculator Modal */}
+      {showCalculatorModal && (
+        <div className="fixed inset-0 z-50 flex backdrop-blur-sm transition-opacity items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-blue-800">
+                13th Month Pay Calculator
+              </h3>
+              <button
+                onClick={() => setShowCalculatorModal(false)}
+                className="cursor-pointer text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-4">
+              <ThirteenthMonthCalculator
+                onCalculate={handleSet13thMonthPay}
+                employeeData={employees.find(
+                  (emp) => emp._id === formData.employeeId
+                )}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
