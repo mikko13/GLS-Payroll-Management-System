@@ -6,6 +6,9 @@ import employeeRoutes from "./routes/employeeRoutes";
 import payrollRoutes from "./routes/payrollRoutes";
 import userRoutes from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
+import positionRoutes from "./routes/positionRoutes";
+import departmentRoutes from "./routes/departmentRoutes";
+
 import config from "./config";
 
 const app = express();
@@ -41,6 +44,8 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/payrolls", payrollRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/system/positions", positionRoutes);
+app.use("/api/system/departments", departmentRoutes);
 
 app.get("/", (req, res) => {
   res.send("Employee Management API is running");

@@ -13,6 +13,18 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast, Toaster } from "sonner";
 
+interface Department {
+  _id: string;
+  name: string;
+  isActive: boolean;
+}
+
+interface Position {
+  _id: string;
+  title: string;
+  isActive: boolean;
+}
+
 interface Employee {
   id: string;
   lastName: string;
@@ -43,6 +55,9 @@ const UpdateEmployeeForm: React.FC = () => {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [positions, setPositions] = useState<Position[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState<Employee>({
     id: "",
     lastName: "",
@@ -65,6 +80,37 @@ const UpdateEmployeeForm: React.FC = () => {
     status: "Regular",
     remarks: "Active",
   });
+
+  useEffect(() => {
+    const fetchDepartmentsAndPositions = async () => {
+      try {
+        setIsLoading(true);
+
+        const departmentsResponse = await axios.get(
+          "http://localhost:5000/api/system/departments"
+        );
+        const departmentsData = departmentsResponse.data.data || [];
+        setDepartments(
+          departmentsData.filter((dept: Department) => dept.isActive)
+        );
+
+        const positionsResponse = await axios.get(
+          "http://localhost:5000/api/system/positions"
+        );
+        const positionsData = positionsResponse.data.data || [];
+        setPositions(positionsData.filter((pos: Position) => pos.isActive));
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        toast.error("Failed to load departments and positions", {
+          description: "Please try refreshing the page.",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDepartmentsAndPositions();
+  }, []);
 
   useEffect(() => {
     const stateEmployee = location.state?.employee;
@@ -483,14 +529,11 @@ const UpdateEmployeeForm: React.FC = () => {
                   } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                 >
                   <option value="">Select Position</option>
-                  {formData.gender === "Female" ? (
-                    <option value="Waitress">Waitress</option>
-                  ) : (
-                    <option value="Waiter">Waiter</option>
-                  )}
-                  <option value="Staff Supervisor">Staff Supervisor</option>
-                  <option value="Coordinator">Coordinator</option>
-                  <option value="Kitchen Helper">Kitchen Helper</option>
+                  {positions.map((pos) => (
+                    <option key={pos._id} value={pos.title}>
+                      {pos.title}
+                    </option>
+                  ))}
                 </select>
                 {errors.position && (
                   <p className="text-sm text-red-600 mt-1">{errors.position}</p>
@@ -514,8 +557,11 @@ const UpdateEmployeeForm: React.FC = () => {
                   } px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200`}
                 >
                   <option value="">Select Department</option>
-                  <option value="F&B">Food & Beverages</option>
-                  <option value="Kitchen">Kitchen</option>
+                  {departments.map((dept) => (
+                    <option key={dept._id} value={dept.name}>
+                      {dept.name}
+                    </option>
+                  ))}
                 </select>
                 {errors.department && (
                   <p className="text-sm text-red-600 mt-1">
@@ -523,7 +569,6 @@ const UpdateEmployeeForm: React.FC = () => {
                   </p>
                 )}
               </div>
-
               <div className="space-y-2">
                 <label
                   htmlFor="dateStarted"

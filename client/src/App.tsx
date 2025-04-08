@@ -20,7 +20,8 @@ import AdminCreateEmployeeForm from "./pages/AdminComponents/EmployeeComponents/
 import AdminUpdateEmployeeForm from "./pages/AdminComponents/EmployeeComponents/UpdateEmployeeComponents/UpdateEmployeeForm";
 import AdminCreatePayrollForm from "./pages/AdminComponents//PayrollComponents/CreatePayrollComponents/CreatePayrollForm";
 import AdminUpdatePayrollForm from "./pages/AdminComponents/PayrollComponents/UpdatePayrollComponents/UpdatePayrollForm";
-import AdminSettings from "./pages/AdminComponents/SettingsComponents/SettingsPage"
+import AdminSettings from "./pages/AdminComponents/SettingsComponents/SettingsPage";
+import AdminSystemSettings from "./pages/AdminComponents/SystemSettingsComponents/SystemSettingsPage";
 
 import ForgotPasswordComponent from "./pages/ForgotPasswordComponents/ForgotPassword";
 
@@ -100,10 +101,8 @@ function App() {
             element={<AdminUpdatePayrollForm />}
           />
 
-          <Route
-            path="/admin-settings"
-            element={<AdminSettings />}
-          />
+          <Route path="/admin-settings" element={<AdminSettings />} />
+          <Route path="/admin-system-settings" element={<AdminSystemSettings />} />
         </Route>
       </Routes>
     </Router>

@@ -6,10 +6,12 @@ const Header = () => {
   const location = useLocation();
 
   const pageTitles = {
-    "/payroll": "Payroll",
-    "/employees": "Employees",
-    "/settings": "Settings",
-    "/dashboard": "Home",
+    "/admin-dashboard": "Dashboard",
+    "/admin-user-accounts": "User Accounts",
+    "/admin-employees": "Employees",
+    "/admin-payroll": "Payroll",
+    "/admin-settings": "Account Settings",
+    "/admin-system-settings": "System Settings",
   };
 
   const title = pageTitles[location.pathname] || "Dashboard";
