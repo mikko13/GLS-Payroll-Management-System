@@ -88,7 +88,7 @@ const Actions: React.FC<ActionsProps> = ({
             >
               <input
                 type="text"
-                placeholder="Search employees..."
+                placeholder="Search records..."
                 className="bg-white text-gray-800 px-3 py-2 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 border border-blue-200 transition-all duration-200"
               />
               <Search
@@ -96,17 +96,6 @@ const Actions: React.FC<ActionsProps> = ({
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               />
             </div>
-            <button
-              className="p-2 rounded-md bg-white hover:bg-blue-50 transition-all duration-200 border border-blue-200"
-              style={{
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? "translateX(0)" : "translateX(10px)",
-                transition: "opacity 500ms ease-out, transform 500ms ease-out",
-                transitionDelay: "400ms",
-              }}
-            >
-              <Filter size={16} className="text-gray-400" />
-            </button>
           </div>
         </div>
 
