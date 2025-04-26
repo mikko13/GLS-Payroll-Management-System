@@ -4,7 +4,7 @@
   "description": "Server for Employee Management System",
   "main": "dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "node src/index.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "lint": "eslint . --ext .ts"
