@@ -12,11 +12,12 @@ const Dashboard: React.FC = () => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("Dashboard");
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees");
+        const response = await axios.get(`${serverURL}/api/employees`);
         setEmployees(response.data);
         setLoading(false);
       } catch (error) {
@@ -27,7 +28,6 @@ const Dashboard: React.FC = () => {
 
     fetchEmployees();
   }, []);
-
 
   return (
     <div className="flex h-screen bg-gray-50">

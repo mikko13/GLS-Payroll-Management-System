@@ -51,7 +51,8 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
   });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   // Password validation states
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>({
@@ -225,7 +226,7 @@ const CreateUserForm: React.FC<CreateUserFormProps> = ({
       }
 
       const response = await axios.post(
-        "http://localhost:5000/api/users",
+        `${serverURL}/api/users`,
         submitData,
         {
           headers: {

@@ -44,7 +44,8 @@ const SecurityTab = ({ userId }: SecurityTabProps) => {
     hasNumber: false,
     hasSpecial: false,
   });
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   // Analyze password strength whenever newPassword changes
   useEffect(() => {
     const password = formData.newPassword;
@@ -121,7 +122,7 @@ const SecurityTab = ({ userId }: SecurityTabProps) => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/users/${userId}/password`,
+        `${serverURL}/api/users/${userId}/password`,
         {
           currentPassword: formData.currentPassword,
           newPassword: formData.newPassword,

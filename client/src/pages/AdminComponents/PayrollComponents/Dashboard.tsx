@@ -20,7 +20,8 @@ const PayrollDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   const filteredPayrolls = useMemo(() => {
     return payrolls.filter((payroll) => payroll.payPeriod === payPeriod);
   }, [payrolls, payPeriod]);
@@ -28,7 +29,7 @@ const PayrollDashboard: React.FC = () => {
   useEffect(() => {
     const fetchPayrolls = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/payrolls");
+        const response = await axios.get(`${serverURL}/api/payrolls`);
         setPayrolls(response.data);
         setLoading(false);
 

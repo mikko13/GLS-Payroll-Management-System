@@ -15,17 +15,18 @@ const StatCards: React.FC<StatCardsProps> = ({ employees, loading }) => {
     employeeCount: 0,
     totalPayroll: 0,
   });
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
         // Fetch current payroll data
-        const response = await axios.get("http://localhost:5000/api/payrolls");
+        const response = await axios.get(`${serverURL}/api/payrolls`);
         setPayrollData(response.data);
 
         // Fetch previous month's stats for comparison
         const previousStats = await axios.get(
-          "http://localhost:5000/api/stats/previous-month"
+          `${serverURL}/api/stats/previous-month`
         );
         setPreviousMonthStats({
           employeeCount: previousStats.data.employeeCount || 0,

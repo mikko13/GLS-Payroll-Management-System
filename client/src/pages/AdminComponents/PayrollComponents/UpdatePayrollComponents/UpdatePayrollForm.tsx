@@ -42,7 +42,8 @@ const UpdatePayrollForm: React.FC = () => {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [showAlertDialog, setShowAlertDialog] = useState(false);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   const [formData, setFormData] = useState({
     employeeId: "",
     name: "",
@@ -66,7 +67,7 @@ const UpdatePayrollForm: React.FC = () => {
     const fetchPayrollData = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/payrolls/${id}`
+          `${serverURL}/api/payrolls/${id}`
         );
         setFormData(response.data);
       } catch (err) {
@@ -80,7 +81,7 @@ const UpdatePayrollForm: React.FC = () => {
 
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees");
+        const response = await axios.get(`${serverURL}/api/employees`);
         setEmployees(response.data);
       } catch (err) {
         console.error("Error fetching employees:", err);
@@ -134,7 +135,7 @@ const UpdatePayrollForm: React.FC = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/payrolls/${id}`,
+        `${serverURL}/api/payrolls/${id}`,
         formData
       );
 

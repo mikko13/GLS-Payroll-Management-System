@@ -22,7 +22,8 @@ const ForgotPasswordComponent = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [animationComplete, setAnimationComplete] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   const navigate = useNavigate();
 
   const EMAILJS_SERVICE_ID = "service_9jb3hqb";
@@ -42,7 +43,7 @@ const ForgotPasswordComponent = () => {
   const checkEmailExists = async (email) => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/users/check-email?email=${encodeURIComponent(
+        `${serverURL}/api/users/check-email?email=${encodeURIComponent(
           email
         )}`
       );
@@ -68,7 +69,7 @@ const ForgotPasswordComponent = () => {
       }
 
       const response = await fetch(
-        `http://localhost:5000/api/users/check-email?email=${encodeURIComponent(
+        `${serverURL}/api/users/check-email?email=${encodeURIComponent(
           email
         )}`
       );
@@ -147,7 +148,7 @@ const ForgotPasswordComponent = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/users/reset-password",
+        `${serverURL}/api/users/reset-password`,
         {
           method: "POST",
           headers: {
@@ -188,7 +189,7 @@ const ForgotPasswordComponent = () => {
 
     try {
       const checkResponse = await fetch(
-        `http://localhost:5000/api/users/check-email?email=${encodeURIComponent(
+        `${serverURL}/api/users/check-email?email=${encodeURIComponent(
           email
         )}`
       );

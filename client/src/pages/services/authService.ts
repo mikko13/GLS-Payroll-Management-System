@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:5000/api/auth";
+const serverURL = import.meta.env.VITE_API_BASE_URL;
 
 // Store token in localStorage
 const setToken = (token) => {
@@ -41,7 +41,7 @@ const authHeader = () => {
 // Login user with improved error handling and logging
 const login = async (email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, {
+    const response = await axios.post(`${serverURL}/api/auth/login`, {
       email,
       password,
     });
@@ -75,7 +75,7 @@ const login = async (email, password) => {
 const logout = async () => {
   try {
     await axios.post(
-      `${API_BASE_URL}/logout`,
+      `${serverURL}/api/auth/logout`,
       {},
       {
         headers: authHeader(),
@@ -91,7 +91,7 @@ const logout = async () => {
 // Get current user info with improved error handling and role validation
 const getCurrentUser = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/me`, {
+    const response = await axios.get(`${serverURL}/api/auth/me`, {
       headers: authHeader(),
     });
 

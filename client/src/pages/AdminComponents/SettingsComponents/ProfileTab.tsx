@@ -34,14 +34,15 @@ const ProfileTab = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [imageVersion, setImageVersion] = useState(Date.now());
   const [enlargedImageUrl, setEnlargedImageUrl] = useState<string | null>(null);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   // Fetch current user data on component mount
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get(
-          "http://localhost:5000/api/users/current",
+          `${serverURL}api/users/current`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -60,7 +61,7 @@ const ProfileTab = ({
         if (response.data.profilePicture?.hasImage) {
           setHasExistingImage(true);
           setPreviewUrl(
-            `http://localhost:5000/api/users/${
+            `${serverURL}/api/users/${
               response.data._id
             }/profile-picture?${Date.now()}`
           );
@@ -194,7 +195,7 @@ const ProfileTab = ({
       }
 
       const response = await axios.put(
-        "http://localhost:5000/api/users/current",
+        `${serverURL}/api/users/current`,
         formData,
         {
           headers: {

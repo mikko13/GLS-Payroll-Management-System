@@ -21,12 +21,13 @@ const UserDashboard = () => {
   const [activeSidebarItem, setActiveSidebarItem] = useState("User Accounts");
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/users");
+        const response = await axios.get(`${serverURL}/api/users`);
         const usersWithId = response.data.map((user) => ({
           ...user,
           id: user._id,

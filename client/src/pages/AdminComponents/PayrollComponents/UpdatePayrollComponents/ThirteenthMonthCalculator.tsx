@@ -37,12 +37,13 @@ const ThirteenthMonthCalculator = ({
     thirteenthMonthPay: number;
     monthsWorked: number;
   } | null>(null);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   // Fetch employees on mount
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees");
+        const response = await axios.get(`${serverURL}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
         console.error("Error fetching employees:", error);
@@ -69,7 +70,7 @@ const ThirteenthMonthCalculator = ({
     setIsLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/payrolls/thirteenth-month/${selectedEmployee}/${selectedYear}`
+        `${serverURL}/api/payrolls/thirteenth-month/${selectedEmployee}/${selectedYear}`
       );
 
       const { totalBasicSalary, thirteenthMonthPay, payrollRecordsCount } =

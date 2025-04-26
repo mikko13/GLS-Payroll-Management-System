@@ -10,7 +10,7 @@ const SettingsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userId, setUserId] = useState("");
   const [activeSidebarItem, setActiveSidebarItem] = useState("Settings");
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -26,14 +26,11 @@ const SettingsPage = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/users/current",
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const response = await axios.get(`${serverURL}/api/users/current`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setFormData({
           firstName: response.data.firstName,
           lastName: response.data.lastName,
@@ -67,7 +64,7 @@ const SettingsPage = () => {
     e.preventDefault();
     try {
       const response = await axios.put(
-        "http://localhost:5000/api/users/current",
+        `${serverURL}/api/users/current`,
         formData,
         {
           headers: {

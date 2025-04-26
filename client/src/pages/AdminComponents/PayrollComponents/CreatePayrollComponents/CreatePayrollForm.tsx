@@ -35,7 +35,8 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
   const [employees, setEmployees] = useState<IEmployee[]>([]);
   const [showCalculatorModal, setShowCalculatorModal] = useState(false);
   const [showAlertDialog, setShowAlertDialog] = useState(false);
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   const [formData, setFormData] = useState({
     name: "",
     numberOfRegularHours: 8,
@@ -57,7 +58,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/employees");
+        const response = await axios.get(`${serverURL}/api/employees`);
         setEmployees(response.data);
       } catch (err) {
         console.error("Error fetching employees:", err);
@@ -110,7 +111,7 @@ const CreatePayrollForm: React.FC<CreatePayrollFormProps> = ({ onSubmit }) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/payrolls",
+        `${serverURL}/api/payrolls`,
         formData
       );
 

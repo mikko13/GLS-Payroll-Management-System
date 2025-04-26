@@ -61,12 +61,13 @@ const PayrollSummaryChart = () => {
     "#ef4444",
     "#10b981",
   ];
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   useEffect(() => {
     const fetchPayrollData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/payrolls");
+        const response = await axios.get(`${serverURL}/api/payrolls`);
         const data = response.data;
 
         // Extract unique pay periods

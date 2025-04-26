@@ -42,7 +42,8 @@ const PayrollSummaryChart = () => {
   const [chartType, setChartType] = useState("bar");
   const [payPeriods, setPayPeriods] = useState([]);
   const [selectedMetric, setSelectedMetric] = useState("all");
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   // Colors for charts
   const COLORS = {
     regularWage: "#3b82f6",
@@ -66,7 +67,7 @@ const PayrollSummaryChart = () => {
     const fetchPayrollData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/payrolls");
+        const response = await axios.get(`${serverURL}/api/payrolls`);
         const data = response.data;
 
         // Extract unique pay periods

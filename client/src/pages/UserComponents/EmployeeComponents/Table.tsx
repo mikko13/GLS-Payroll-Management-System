@@ -38,6 +38,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   );
   const [viewEmployee, setViewEmployee] = useState<Employee | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
 
   const handleDownloadPDF = async (employee: Employee) => {
     try {
@@ -70,7 +71,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/employees/${employeeToDelete.id}`
+        `${serverURL}/api/employees/${employeeToDelete.id}`
       );
 
       const updatedEmployees = employees.filter(

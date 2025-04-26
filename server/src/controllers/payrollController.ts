@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import PayrollModel from "../models/Payroll";
 import axios from "axios";
 
+const serverURL = process.env.API_BASE_URL;
+
 export const getAllPayrolls = async (req: Request, res: Response) => {
   try {
     const payrolls = await PayrollModel.find().sort({ createdAt: -1 });
@@ -95,7 +97,7 @@ export const calculateThirteenthMonthPay = async (
 
     // Get the employee name (assuming you have an endpoint to fetch employee details)
     const employeeResponse = await axios.get(
-      `http://localhost:5000/api/employees/${employeeId}`
+      `${serverURL}/api/employees/${employeeId}`
     );
     const employeeName = `${employeeResponse.data.lastName}, ${employeeResponse.data.firstName}`;
 

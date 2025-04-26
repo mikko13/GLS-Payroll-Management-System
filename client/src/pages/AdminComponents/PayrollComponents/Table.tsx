@@ -153,13 +153,14 @@ const PayrollTable: React.FC<PayrollTableProps> = ({
       state: { payroll },
     });
   };
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
 
   const handleDeletePayroll = async () => {
     if (!payrollToDelete) return;
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/payrolls/${
+        `${serverURL}/api/payrolls/${
           payrollToDelete._id || payrollToDelete.id
         }`
       );

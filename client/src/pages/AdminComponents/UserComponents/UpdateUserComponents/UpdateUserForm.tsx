@@ -64,7 +64,7 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
   const [hasExistingImage, setHasExistingImage] = useState(false);
   const [removeCurrentImage, setRemoveCurrentImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  // Add timestamp state for profile picture cache busting
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
   const [profilePictureTimestamp, setProfilePictureTimestamp] =
     useState<number>(Date.now());
 
@@ -106,7 +106,7 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
           const userId = user.id || user._id;
           // Add timestamp to URL to prevent caching
           setPreviewUrl(
-            `http://localhost:5000/api/users/${userId}/profile-picture?${profilePictureTimestamp}`
+            `h${serverURL}/api/users/${userId}/profile-picture?${profilePictureTimestamp}`
           );
         }
 
@@ -117,9 +117,7 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
       if (id) {
         setIsLoading(true);
         try {
-          const response = await axios.get(
-            `http://localhost:5000/api/users/${id}`
-          );
+          const response = await axios.get(`${serverURL}/api/users/${id}`);
           const userData = response.data;
 
           setFormData({
@@ -135,7 +133,7 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
             setHasExistingImage(true);
             // Add timestamp to URL to prevent caching
             setPreviewUrl(
-              `http://localhost:5000/api/users/${userData._id}/profile-picture?${profilePictureTimestamp}`
+              `${serverURL}/api/users/${userData._id}/profile-picture?${profilePictureTimestamp}`
             );
           }
         } catch (err) {
@@ -346,7 +344,7 @@ const UpdateUserForm: React.FC<UpdateUserFormProps> = ({
 
       const userId = id || user._id || user.id;
       const response = await axios.put(
-        `http://localhost:5000/api/users/${userId}`,
+        `${serverURL}/api/users/${userId}`,
         submitData,
         {
           headers: {

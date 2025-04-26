@@ -26,7 +26,8 @@ const SystemSettingsPage = () => {
   const [departments, setDepartments] = useState<IDepartment[]>([]);
   const [newPosition, setNewPosition] = useState("");
   const [newDepartment, setNewDepartment] = useState("");
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   useEffect(() => {
     fetchPositionsAndDepartments();
   }, []);
@@ -34,7 +35,7 @@ const SystemSettingsPage = () => {
   const fetchPositionsAndDepartments = async () => {
     try {
       const positionsResponse = await axios.get(
-        "http://localhost:5000/api/system/positions",
+        `${serverURL}/api/system/positions`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -43,7 +44,7 @@ const SystemSettingsPage = () => {
       );
 
       const departmentsResponse = await axios.get(
-        "http://localhost:5000/api/system/departments",
+        `${serverURL}/api/system/departments`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -68,8 +69,8 @@ const SystemSettingsPage = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/system/positions",
-        { title: newPosition }, // Changed from name to title to match backend
+        `${serverURL}/api/system/positions`,
+        { title: newPosition },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -91,7 +92,7 @@ const SystemSettingsPage = () => {
       if (!position) return;
 
       await axios.put(
-        `http://localhost:5000/api/system/positions/${id}`,
+        `${serverURL}/api/system/positions/${id}`,
         { title, isActive: position.isActive },
         {
           headers: {
@@ -113,7 +114,7 @@ const SystemSettingsPage = () => {
       if (!department) return;
 
       await axios.put(
-        `http://localhost:5000/api/system/departments/${id}`,
+        `${serverURL}/api/system/departments/${id}`,
         { name, isActive: department.isActive },
         {
           headers: {
@@ -135,7 +136,7 @@ const SystemSettingsPage = () => {
   ) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/system/positions/${id}/toggle`,
+        `${serverURL}/api/system/positions/${id}/toggle`,
         {},
         {
           headers: {
@@ -159,7 +160,7 @@ const SystemSettingsPage = () => {
   ) => {
     try {
       await axios.patch(
-        `http://localhost:5000/api/system/departments/${id}/toggle`,
+        `${serverURL}/api/system/departments/${id}/toggle`,
         {},
         {
           headers: {
@@ -185,7 +186,7 @@ const SystemSettingsPage = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/system/departments",
+        `${serverURL}/api/system/departments`,
         { name: newDepartment },
         {
           headers: {
@@ -205,7 +206,7 @@ const SystemSettingsPage = () => {
   const handleDeletePosition = async (positionId: string) => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/system/positions/${positionId}`,
+        `${serverURL}/api/system/positions/${positionId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -223,7 +224,7 @@ const SystemSettingsPage = () => {
   const handleDeleteDepartment = async (departmentId: string) => {
     try {
       await axios.delete(
-        `http://localhost:5000/api/system/departments/${departmentId}`,
+        `${serverURL}/api/system/departments/${departmentId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

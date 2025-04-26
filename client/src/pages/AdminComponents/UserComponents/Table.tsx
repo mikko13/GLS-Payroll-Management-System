@@ -65,9 +65,10 @@ const UserTable: React.FC<UserTableProps> = ({
     Record<string, string>
   >({});
   const navigate = useNavigate();
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   const handleViewProfilePicture = (userId: string) => {
-    const imageUrl = `http://localhost:5000/api/users/${userId}/profile-picture?${
+    const imageUrl = `${serverURL}/api/users/${userId}/profile-picture?${
       updatedProfilePictures[userId] || Date.now()
     }`;
     setEnlargedImageUrl(imageUrl);
@@ -83,7 +84,7 @@ const UserTable: React.FC<UserTableProps> = ({
     if (!userToDelete) return;
 
     try {
-      await axios.delete(`http://localhost:5000/api/users/${userToDelete.id}`);
+      await axios.delete(`${serverURL}/api/users/${userToDelete.id}`);
 
       const updatedUsers = users.filter((user) => user.id !== userToDelete.id);
       setUsers(updatedUsers);
@@ -107,7 +108,7 @@ const UserTable: React.FC<UserTableProps> = ({
 
     try {
       await axios.patch(
-        `http://localhost:5000/api/users/${userToToggleStatus.id}/toggle-status`
+        `${serverURL}/api/users/${userToToggleStatus.id}/toggle-status`
       );
 
       // Update the user in the local state
@@ -183,7 +184,7 @@ const UserTable: React.FC<UserTableProps> = ({
                         >
                           {user.profilePicture?.hasImage ? (
                             <img
-                              src={`http://localhost:5000/api/users/${
+                              src={`${serverURL}/api/users/${
                                 user.id
                               }/profile-picture?${
                                 updatedProfilePictures[user.id] || Date.now()

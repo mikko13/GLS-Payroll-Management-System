@@ -18,7 +18,8 @@ const UserAvatar: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageVersion, setImageVersion] = useState(Date.now());
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -80,7 +81,7 @@ const UserAvatar: React.FC = () => {
           </div>
         ) : (
           <img
-            src={`http://localhost:5000/api/users/${userId}/profile-picture?${imageVersion}`}
+            src={`${serverURL}/api/users/${userId}/profile-picture?${imageVersion}`}
             alt={`${userData.firstName}'s profile`}
             className="w-full h-full object-cover"
             onError={(e) => {

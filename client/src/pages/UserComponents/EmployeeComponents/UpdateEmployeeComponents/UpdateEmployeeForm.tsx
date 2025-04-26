@@ -80,6 +80,7 @@ const UpdateEmployeeForm: React.FC = () => {
     status: "Regular",
     remarks: "Active",
   });
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchDepartmentsAndPositions = async () => {
@@ -87,7 +88,7 @@ const UpdateEmployeeForm: React.FC = () => {
         setIsLoading(true);
 
         const departmentsResponse = await axios.get(
-          "http://localhost:5000/api/system/departments"
+          `${serverURL}/api/system/departments`
         );
         const departmentsData = departmentsResponse.data.data || [];
         setDepartments(
@@ -95,7 +96,7 @@ const UpdateEmployeeForm: React.FC = () => {
         );
 
         const positionsResponse = await axios.get(
-          "http://localhost:5000/api/system/positions"
+          `${serverURL}/api/system/positions`
         );
         const positionsData = positionsResponse.data.data || [];
         setPositions(positionsData.filter((pos: Position) => pos.isActive));
@@ -121,7 +122,7 @@ const UpdateEmployeeForm: React.FC = () => {
       const fetchEmployee = async () => {
         try {
           const response = await axios.get(
-            `http://localhost:5000/api/employees/${id}`
+            `${serverURL}/api/employees/${id}`
           );
           setFormData(response.data);
         } catch (err) {
@@ -248,7 +249,7 @@ const UpdateEmployeeForm: React.FC = () => {
     try {
       // Change this for update (PUT request instead of POST)
       const response = await axios.put(
-        `http://localhost:5000/api/employees/${id}`,
+        `${serverURL}/api/employees/${id}`,
         formData
       );
 

@@ -37,7 +37,8 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
     null
   );
-
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
+  
   const handleDownloadPDF = async (employee: Employee) => {
     try {
       await generateEmployeePDF(employee);
@@ -64,7 +65,7 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
 
     try {
       await axios.delete(
-        `http://localhost:5000/api/employees/${employeeToDelete.id}`
+        `${serverURL}/api/employees/${employeeToDelete.id}`
       );
 
       const updatedEmployees = employees.filter(

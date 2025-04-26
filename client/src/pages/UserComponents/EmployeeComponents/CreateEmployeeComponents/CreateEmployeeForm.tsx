@@ -64,6 +64,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
   const [departments, setDepartments] = useState<Department[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const serverURL = import.meta.env.VITE_API_BASE_URL;
 
   const [formData, setFormData] = useState({
     lastName: "",
@@ -97,7 +98,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
         setIsLoading(true);
 
         const departmentsResponse = await axios.get(
-          "http://localhost:5000/api/system/departments"
+          `${serverURL}/api/system/departments`
         );
         const departmentsData = departmentsResponse.data.data || [];
         setDepartments(
@@ -105,7 +106,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
         );
 
         const positionsResponse = await axios.get(
-          "http://localhost:5000/api/system/positions"
+          `${serverURL}/api/system/positions`
         );
         const positionsData = positionsResponse.data.data || [];
         setPositions(positionsData.filter((pos: Position) => pos.isActive));
@@ -228,7 +229,7 @@ const CreateEmployeeForm: React.FC<CreateEmployeeFormProps> = ({
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/employees",
+        `${serverURL}/api/employees`,
         formData
       );
 
